@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StaticResource xmlns="http://soap.sforce.com/2006/04/metadata">
+    <cacheControl>Public</cacheControl>
+    <contentType>application/zip</contentType>
+    <description>RS2 static resources - Last updated: Tushar Roy: Aug 11, 2016 (IBS-366)</description>
+</StaticResource>

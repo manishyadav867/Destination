@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ApexComponent xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>37.0</apiVersion>
+    <description>This component can be used to display the field tracking . Pass the record id and object name</description>
+    <label>GSS_RequestHistoryComponent</label>
+</ApexComponent>

@@ -1,0 +1,35 @@
+<!--
+Name: GSS_EscalationRequest_History
+Description : CR-00140215: This page is used to display the history of all the changes happend on ER
+Author : Accenture(Jyolsna)
+Created Date: 5-Aug-2016
+---->
+<apex:page standardController="GSS_Request__c" showHeader="false" extensions="GSS_EscalationHistoryController">
+    
+    <apex:sectionHeader title="Request History" subtitle="{!GSS_Request__c.Name}"/>
+    <apex:outputLabel rendered="{!OR(requestHistList == null , requestHistList.size == 0)}" ><b>No history present</b></apex:outputLabel>
+    <apex:form > 
+        <apex:pageBlock id="pageBlockId" rendered="{!requestHistList != null}">
+            <div align="right">
+                <b>Page Size:</b>&nbsp;
+                <apex:selectList value="{!pageSize}" multiselect="false" size="1">
+                    <apex:actionSupport event="onchange" action="{!doChangePageSize}" rerender="pageBlockId"/>
+                    <apex:selectOptions value="{!lstPageSize}"/>
+                </apex:selectList> &nbsp;&nbsp;
+                <apex:commandButton value="<< Previous" action="{!Previous}" disabled="{!disablePrevious}"/>
+                <apex:commandButton value="Next >>" action="{!doNext}" disabled="{!disableNext}" />
+            </div>  
+            <apex:pageBlockTable value="{!requestHistList}" var="req" id="pageBlockTableId">  
+                <apex:column headerValue="Date/Time" value="{!req.createdDate}" width="10%"/>  
+                <apex:column headerValue="Name" >
+                    <apex:outputText value="{!req.Name}" escape="false"> </apex:outputText>
+                </apex:column>
+            </apex:pageBlockTable>
+             <div align="right">
+                <apex:commandButton value="<< Previous" action="{!Previous}" disabled="{!disablePrevious}"/>
+                <apex:commandButton value="Next >>" action="{!doNext}" disabled="{!disableNext}" />          
+            </div>
+            <apex:facet name="footer">Showing Page # {!currentPageNumber} of {!totalPages}</apex:facet>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

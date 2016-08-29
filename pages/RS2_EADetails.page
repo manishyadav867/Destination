@@ -1,0 +1,395 @@
+<apex:page docType="html-5.0" showheader="false" sidebar="false" standardStylesheets="false" id="opptyPageId" applyBodyTag="false" controller="VFZip_Con">
+    <head>
+        <meta charset="utf-8"></meta>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"></meta>
+        <title>EA Details</title>
+        <meta name="description" content=""></meta>
+        <meta name="viewport" content="width=device-width"></meta>
+        
+         <apex:stylesheet value="{!URLFOR($Resource.VMF_static, '/vmf/c/4.2/css/starlight.css')}" id="stylesht"/>
+        <!--[if lt IE 10]>
+                    <link rel="stylesheet" href="{!URLFOR($Resource.VMF_static, '/vmf/c/4.2/css/ie.css')}"/>
+         <![endif]-->
+        
+        <apex:stylesheet value="{!URLFOR($Resource.RS2_static, '/css/rs2/common.css')}" id="styleCommonId"/>
+        <apex:stylesheet value="{!URLFOR($Resource.RS2_static, '/css/rs2/requestDetails.css')}" id="styleOpptyId"/>
+
+        <script type="text/javascript">__sfdcSessionId = '{!$Api.Session_Id}';window.rs2Root = "{!URLFOR($Resource.RS2_static, '/')}";window.vmfRoot = "{!URLFOR($Resource.VMF_static, '/vmf')}";</script>
+        
+        <script>
+            var isLTIE10 = false,
+                hasLocalVmf = false;
+            
+            if (typeof vmf == 'undefined') {
+                hasLocalVmf = true;
+                document.write(unescape("%3Cscript src='{!URLFOR($Resource.VMF_static, '/vmf/c/4.2/js/vmf.min.js')}' type='text/javascript'%3E%3C/script%3E"));
+            } 
+        </script>
+        <!--[if lt IE 10]>            
+            <script> var isLTIE10 = true; </script>         
+        <![endif]-->
+        <script src="{!URLFOR($Resource.RS2_static,'app/RS2.definitions.js')}"/>
+        <script>
+            if (isLTIE10 && hasLocalVmf ) {
+                document.write(unescape("%3Cscript src='{!URLFOR($Resource.VMF_static, '/vmf/c/4.2/js/vmf-ie.min.js')}' type='text/javascript'%3E%3C/script%3E"));
+            }
+        </script>
+        
+        <script>
+         function b64toBlob(b64Data, contentType, sliceSize) {
+            contentType = contentType || '';
+            sliceSize = sliceSize || 512;
+            var byteCharacters = atob(b64Data);
+            var byteArrays = [];
+            for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+                var slice = byteCharacters.slice(offset, offset + sliceSize);
+                var byteNumbers = new Array(slice.length);
+                for (var i = 0; i < slice.length; i++) {
+                    byteNumbers[i] = slice.charCodeAt(i);
+                }
+                var byteArray = new Uint8Array(byteNumbers);
+                byteArrays.push(byteArray);
+            }
+            var blob = new Blob(byteArrays, {
+                type: contentType
+            });
+            return blob;
+        }
+        
+         function zipAttachments(attachments,event){
+              if(attachments.length<1){
+                  RS2.msg.confirm({
+                              sType: 'alert'
+                            , sTitle: 'Download Attachments File Size Exceeded'
+                            , sMessage: 'Your downloaded file size is more than 6MB. Please choose less number of opportunities or perform individual file downloads.'
+                            , sPrimaryButtonText: 'OK'
+                        });
+                        return false;
+              }
+              var zip = new JSZip()
+              
+              $.each(attachments,function( loopIndex ){
+                    var lastIndex = this.AttachmentObj.Name.lastIndexOf('.'),
+                        tempExt = this.AttachmentObj.Name.substr(lastIndex+1),
+                        tempFileName = this.AttachmentObj.Name.substr(0, lastIndex) +"_"+ loopIndex;
+                   
+                   zip.file(tempFileName+"."+tempExt, this.base64Body, {base64: true,compression:"DEFLATE"});
+              });
+              var content = zip.generate({type:"blob"});             
+              saveAs(content, "quotes.zip");
+        }
+       
+       function fetchAttachments(attachIds,callback,isMultiple,$el,hideOverlay){
+           if(!window.Blob){
+               RS2.msg.confirm({
+                              sType: 'alert'
+                            , sTitle: 'Not Supported Download Attachments'
+                            , sMessage: 'Your browser is not supporting download attachments feature, please upgrade your browser.'
+                            , sPrimaryButtonText: 'OK'
+                        });
+              return false;
+           }
+           var loader = RS2.utils.getSpinner($el),
+           attachmentArr = [],
+           attachmentCount = 0;
+           if($el.hasClass("disabled")){return false;}
+           $el.addClass("disabled");
+           
+           for(var k=0,len=attachIds.AttachmentId.length; k<len; k++){
+            (function(k){
+               if(attachIds.AttachmentId[k] == "null"){
+               //if attachmentId is null pass the URL
+                   Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.VFZip_Con.getAttachments2}',attachIds.FileName[k]+"."+attachIds.FileType[k],attachIds.Url[k],
+                        function(result, event){
+                            if (event.status) {
+                                attachmentArr.push(result[0]);
+
+                                if(checkNumberOfAttachment(len,(attachmentCount += 1))){
+                                  if(isMultiple){
+                                      callback(attachmentArr,event);
+                                  } else {
+                                      saveAs(b64toBlob(attachmentArr[0].base64Body,null,null),attachmentArr[0].AttachmentObj.Name);
+                                  }
+                                  RS2.utils.removeSpinner( loader );
+                                  $el.removeClass("disabled");
+                                  if(hideOverlay){hideOverlay();}
+                                }
+                            } 
+                        }, 
+                        { buffer: false, escape: true, timeout: 120000 }
+                    );
+               } else {
+                   //else pass the attachmentId itself
+                   Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.VFZip_Con.getAttachments2}',attachIds.FileName[k]+"."+attachIds.FileType[k],attachIds.AttachmentId[k],
+                        function(result, event){
+                            if (event.status) {
+                                attachmentArr.push(result[0]);
+                                
+                                if(checkNumberOfAttachment(len,(attachmentCount += 1))){
+                                  if(isMultiple){
+                                      callback(attachmentArr,event);
+                                  } else {
+                                      saveAs(b64toBlob(attachmentArr[0].base64Body,null,null),attachmentArr[0].AttachmentObj.Name);
+                                  }
+                                  RS2.utils.removeSpinner( loader );
+                                  $el.removeClass("disabled");
+                                  if(hideOverlay){hideOverlay();}
+                                }
+                            } 
+                        }, 
+                        { buffer: false, escape: true, timeout: 120000 }
+                    );
+               }
+             })(k);
+           }
+           
+           /*
+           //Hardik: 21-7-2015 Commenting the older changes
+           Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.VFZip_Con.getAttachments2}',attachIds,
+                    function(result, event){
+                        if (event.status) {
+                            callback(result,event);
+                            RS2.utils.removeSpinner( loader );
+                            $el.removeClass("disabled");
+                            if(hideOverlay){hideOverlay();}
+                        } 
+                    }, 
+                    { buffer: false, escape: true, timeout: 120000 }
+            );*/
+       }
+       
+       function checkNumberOfAttachment(attachmentArrLength,attachmentCount){
+           var result = (attachmentArrLength == attachmentCount)?true:false;
+           return result;
+       }
+        
+        </script>
+
+    </head>
+        <body class="starlight liquid">
+            <span class="hidden" id="vmf-url">{!URLFOR($Resource.VMF_static)}</span>            
+            <div id="pageEyebrowWrapper">
+                <c:RS2_UI_Starlight_Eyebrow ></c:RS2_UI_Starlight_Eyebrow>
+            </div>
+            <section class="container page-container">
+                <div id="pageHeaderWrapper">
+                    <c:RS2_UI_Starlight_Header ></c:RS2_UI_Starlight_Header>
+                </div>      
+                <section id="content-container" class="eaDetailsContentContainer request-details">
+                        <section id="breadcrumbWrapper"></section>
+                        <section>
+                            <div id="eaDetailsTitleWrapper">
+                            </div>
+                            <div id="eaDetailsAccountInfoWrapper">
+                            </div>
+                        </section>
+                        <div class="ajaxSpinner preloadSpinner">&nbsp;</div>
+                        <section>
+                            <article class="renewal-oppts">
+                                <div class="renewalOpptyContainer">
+                                    <h2 class="renewalOpptyHeading">Renewal Opportunities</h2>
+                                    <a class="hidden" href="javascript:;">Show Cross-sell / Up-sell Recommendations</a>
+                                </div>
+                                <div class="bulk-actions main-details">
+                                    <div class="EApanelPreloader"><div class="ajaxSpinner"></div></div>
+                                    <div id="eaDetailsTableWrapper" class="col-lg-4"></div>
+                                    <div id="eaDetailsContractDetailsWrapper" class="col-lg-8"></div>
+                                </div>
+                            </article>
+                        </section>
+                        <div id="childContractsModalWrapper"></div>
+                        <div id="eaDetailschildContractsModalWrapper"></div>
+                </section>
+                <div id="pageFooterWrapper">
+                    <c:RS2_UI_Starlight_Footer ></c:RS2_UI_Starlight_Footer>
+                </div> 
+            </section>
+            
+            
+            <script>
+                //Application Entry Point               
+                vmf.include(["eaDetails"], function(){                 
+                    RS2.vf.initDOMEvents();
+                    RS2.setRootURL("{!URLFOR($Resource.RS2_static, '/')}");
+                    var vc = new RS2.controllers.EADetailsController();
+                    vc.init();
+                });
+                
+            </script>
+            <script type="text/rs2templates" id="eaDetailsTableTemplate">
+                <div class="main-table">
+                    <div>
+                        <div>
+                            <ul class="bulk-options">
+                                <li><a data-bulk-action="requestQuote" href="javascript:;"  class="requestQuote disabled">Request Quote</a></li>
+                                <li><a data-bulk-action="consolidatedQuote" class="consolidatedQuote disabled" href="javascript:;">Request Consolidated Quote</a></li>
+                                <li><a data-bulk-action="downloadQuotes" class="downloadQuotes disabled" href="javascript:;">Download Quotes</a></li>
+                            </ul>
+                        </div>
+                        <table class="starlight" id="eaDetailsTable"></table>
+                    </div> 
+                </div>
+            </script>
+            <script type="text/template" id="eaDetailsTableCellTemplate">
+                <div class="eaDetailsTableCell">
+                    <div class="table-data-cell">
+                        <span class='table-contractNumber byContractContractsCell'><#= contractNumber || "N/A" #></span>
+                        <# if (bConsolidatedContract){ #>
+                            <span class='icons-icn_new_window tableCellTooltipTrigger'>
+                                <div class="hidden tableCellTooltip table-cell-tooltip">
+                                    <div class="custom-arrow-down"></div>
+                                    <div class="table-tooltip-content">
+                                        <span class="table-tooltip-title">Consolidated</span>
+                                        <a href="javascript:;" class="showEAChildContracts">Show child contract(s)</a>  
+                                    </div>
+                                </div>
+                            </span>
+                        <# } #>
+                    </div>
+                    <div class="table-data-cell">
+                        <# if (availability <= 15){ #>
+                            <span class='table-expiration'>Exp. <#= expDate || "N/A" #></span>
+                            <span class='icons-icn_danger' data-toggle="tooltip" data-placement="right" title="Expired or expiring in 15 days or fewer. Reinstatement fees will be added to expired contracts."></span>
+                        <# }else if(availability <= 30){ #>
+                            <span class='table-expiration'>Exp. <#= expDate || "N/A" #></span>
+                            <span class='icons-icn_warning' data-toggle="tooltip" data-placement="right" title="Expiring in 30 days or fewer. Reinstatement fees will be added to expired contracts."></span>
+                        <# }else{ #>
+                            <span class='table-expiration'><#= expDate || "N/A" #></span>
+                        <# } #>
+                    </div>
+                    <span class='table-data-cell table-requestStatus'>
+                        <#= status || "N/A" #>,
+                        <# if(quoteCount && quoteCount != 0) {#>
+                            Quote Available
+                        <# } else{ #>
+                            Quote Unavailable
+                        <# } #>
+                    </span>
+                    <# var amountArr = (null != amount) ? String(amount).split(" ") : ["",null]; #>
+                    <div class="table-data-cell text-right table-amountLocal">
+                        <span class="currency-type currency-<#= amountArr[0] #>"><#= amountArr[0] || "" #></span>
+                        <span><#= (amountArr[1]) ? RS2.utils.formatCurrency(amountArr[1],"2","") : 'N/A' #></span>
+                    </div>
+                </div>
+            </script>
+            <script type="text/template" id="eaDetailsTableSortTemplate">
+                <div id="tableSearchRow">
+                    <input type='text' class='form-control tableSearchRowBox' placeholder='Enter contract no.'>
+                    <span class="tableSearchGlass"></span>
+                    <div class="btn-group tableSearchRowSort">
+                        <button data-toggle="dropdown" class="dropdown-toggle" type="button">Sort By<span class="caret"></span>
+                        </button>
+                        <div role="menu" class="dropdown-menu dropdown-selection">
+                            <div class="drop-cont">
+                                <ul>
+                                    <li class="sort-selected" data-sort="contractExpiration"><label>Contract Expiration</label></li>
+                                    <li data-sort="amount"><label>Amount</label></li>
+                                    <li data-sort="contractNumber"><label>Contract Number</label></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </script>
+            <script type="text/rs2templates" id="eaDetailsRenewalQuotesDownloadTemplate">
+                <div class="btn-group ea-quotes-download-cell">
+                       <button id="btn-ea-<#= quoteId #>" data-toggle="dropdown" class="btn btn-primary dropdown-toggle" type="button">Actions <span class="caret"></span></button> 
+                        <div role="menu" class="dropdown-menu dropdown-selection">                           
+                            <# if (downloadIds && downloadIds.length > 0) { #>
+                                <#
+                                var showRenDownloadBtns = false, temp = {};
+                                for(var att=0,attLen=downloadIds.length;att<attLen;att++){
+                                                   var _type= downloadIds[att].FileType.toLowerCase() + "";
+                                                   if(_type == "pdf" || _type == "xml" || _type == "xls" || _type == "xlsx"){
+                                                       showRenDownloadBtns = true;
+                                                   }
+                                                   temp[_type] = {"url":"/servlet/servlet.FileDownload?file="+downloadIds[att].RCMNotesAttId};
+                                 }
+                                 #>
+                                 <# if(showRenDownloadBtns){#>
+                                    <ul class="downloadAttachment">
+                                       <# if(temp["pdf"]){#>
+                                                <li><a data-quote-download="pdf" href="javascript:void(0);">Download PDF</a></li>
+                                          <# } if(temp["xls"] || temp["xlsx"]){#>
+                                                 <li><a data-quote-download="xls" href="javascript:void(0);">Download Excel</a></li>
+                                          <# } if(temp["xml"]){#>
+                                                <li><a data-quote-download="xml" href="javascript:void(0);">Download XML</a></li>
+                                          <# } #>
+                                        
+                                    </ul> 
+                             <#} } #> 
+                             <ul class="actions">
+                                 <# if(isQuoteExpired){ #>
+                                    <li><a class="requestQuoteExpiration" href="javascript:;">Refresh Expired Quote</a></li>
+                                 <# } #>
+                                 
+                                 <# if(status){#>
+                                    <li><a class='disabled' href='javascript:;' disabled=disabled>Revise Quote</a></li>
+                                 <# } else { #>
+                                    <li><a href='<#= url #>'>Revise Quote</a></li>
+                                 <# } #>
+                              </ul>
+                       </div>
+                </div>
+            </script>
+            
+            <script type="text/template" id="quotesTableExpDateCellTemplate">
+                <div class="table-data-cell"> 
+                    <# if( Number(daysToExpire) < 0 ){ #>
+                        <span class="quoteExpiredText"><#= expirationDate #></span> <span class="custom-error-icn icons-icn_danger" data-toggle="tooltip" data-placement="right" title='This quote has expired. Refresh the quote expiration date by clicking on the "Refresh Expired Quote" link under the Actions button. To revise other quote parameters, click the “Revise Quote” link to specify changes.'></span>
+                    <# }else{ #>
+                        <span><#= expirationDate #></span>
+                    <# } #>
+                </div>
+            </script>
+            <script type="text/template" id="quotesTableChildRowTemplate">
+                <tr class="warning">
+                  <td colspan="10">
+                      <# if( rowObj.consolidationFlag ){ #>
+                        <span class="consolidated" data-toggle="tooltip" data-placement="right" title="" data-original-title="Consolidated Quote - quote that is comprised of multiple contracts and generated based on partner's request."></span>
+                      <# }else if( rowObj.type && (rowObj.type.toLowerCase() == "reactive" || rowObj.type.toLowerCase() == "reactive pds") ){ #>
+                        <span class="reactive"  data-toggle="tooltip" data-placement="right" title="" data-original-title="Reactive Quote - quote that is generated based on partner's request."></span>
+                      <# }else if( rowObj.type && rowObj.type.toLowerCase() == "proactive" ){ #>
+                        <span class="proactive"  data-toggle="tooltip" data-placement="right" title="" data-original-title="Proactive Quote - quote that is automatically generated by VMware."></span>
+                      <# } #>
+                      <strong>Quote No. </strong> <#= rowObj.quoteNumber #> <span class="amount"><#= rowObj.amount #></span>
+                  </td>
+              </tr>
+            </script>
+            <script type="text/template" id="requestsTableChildRowTemplate">
+                <tr class="warning">
+                    <td colspan="10">
+                        <strong>Request No. </strong><a href='/apex/RS2_AllRequests?eaName="<#= eaName #>"&requestNo=<#= rowObj.requestNumber #>&eaNumber="<#= eaNumber #>"&contractNo="<#= contractNo #>"&partner="<#= partner #>"'><#= rowObj.requestNumber #></a>
+                    </td>
+                </tr>
+            </script>
+            <script type="text/rs2templates" id="chooseDownloadTemplate">
+            <div class="modal fade">
+                <div class="modal-dialog modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <span class="close" data-dismiss="modal" aria-hidden="true"></span>
+                            <h4 class="modal-title"> Choose a File Format </h4>
+                        </div>
+                        <div class="modal-body"><p>
+                            <div id="chooseDownloadFormat">
+                                <div class=""><input id="chooseDownloadFormat_pdf" type="radio" name="fileType" value="pdf" <#=pdf.checked#> <#=pdf.disabled#> /><label for="chooseDownloadFormat_pdf">&nbsp;PDF</label></div>
+                                <div class=""><input id="chooseDownloadFormat_xl" type="radio" name="fileType" value="xls" <#=xls.checked#> <#=xls.disabled#> /><label for="chooseDownloadFormat_xl">&nbsp;Excel</label></div>
+                                <div class=""><input id="chooseDownloadFormat_xml" type="radio" name="fileType" value="xml" <#=xml.checked#> <#=xml.disabled#> /><label for="chooseDownloadFormat_xml">&nbsp;XML</label></div></div>
+                        </div>
+                        <div class="modal-footer">                  
+                            <button type="button" class="btn btn-primary">
+                                Download
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </script>
+            <iframe name="hiddenIframe" width="1" height="1" src="javascript:void(0)" style="font-size:0"></iframe>
+        </body>
+
+</apex:page>

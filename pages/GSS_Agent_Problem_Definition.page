@@ -1,0 +1,553 @@
+<!--
+Component name :  GSS_Agent_Problem_Definition
+
+Author  : Accenture
+Purpose : Page for problem definition Tab
+Date    : 6-April-2014 - GSS Agent Console Project
+-->
+<!--CR-00096132  11-July-2014   UI Changes Present Throughout the Page.-->
+<!--CR-00102194 : 8-Aug-2014 - Increase height & width of Version field & Refresh Resolution tab on saving symptoms -->
+<!--CR-00104728 : 9-Aug-2014 - Removed Availble button-->
+<!--CR-00107197 : 19-Aug-2014  Made description field editable when description is'Enter Customer Description Here Here'-->
+<!--CR-00107561 :12-Sep-2014 - Adding SR Links button-->
+<!--CR-00110761 :20-Oct-2014 - Refreshing Action tab on symptoms change-->
+<!--CR-00109419 :20-Nov-2014 - Moving hover to center-->
+<!--CR-00122294 :22-dec-2014 - Adding AuditHistory button-->
+<!--CR-00123420 :13-Feb-2015 - Hover and Product autocomplete changes-->
+<!--CR-00130456 :01-Apr-2015 - Added Break/Fix Radio buttons and hover UI changes-->
+<!--CR-00135497 :10-Dec-2015 - Moved position of 'Product' & 'Product Version'-->
+<!--CR-00137136 :5-Jan-2015  - Adding Support Type Radio buttons. -->
+<!--CR-00138253 :30-Mar-2016 - EA number exposed details -->
+<!--CR-00140332 :4-august-2016 - added Entitlement Name in banner -->
+
+<apex:page standardcontroller="case" extensions="GSS_Agent_Problem_Definition_Controller"  sidebar="false" showHeader="true" id="page">
+
+    <apex:includeScript value="{!$Resource.Soap_Ajax_30_Connection}"/>
+    <apex:includeScript value="{!$Resource.Soap_Ajax_30_Apex}"/>
+    <apex:includeScript value="{!$Resource.Js_Function}"/>
+    <apex:includeScript value="{!$Resource.Support_Console_30_Integration}"/>
+    <apex:includeScript value="{!$Resource.jquery191}"/>
+
+
+<script>
+if(window.navigator.appName=='Microsoft Internet Explorer')
+{
+//CR-00109419,CR-00130456 adding style
+document.write('<style>div.tooltip:hover span.spanclass {display: inline;position: absolute;border: 1px none;background:none !important;color: #000000;z-index:1;top:inherit;left:inherit;margin-top:-12px;margin-left:38%;}</style>');
+}
+else
+{
+//CR-00109419,CR-00130456 adding style
+document.write('<style>div.tooltip:hover span.spanclass {display: inline;position: absolute;border: 1px none;background:none !important;color: #000000;z-index:1;top:inherit;left:inherit;margin-top:-17px;margin-left:38%;}</style>');
+}
+</script>
+
+    
+<style>
+     body { background-color: {!TabColor} !important; } 
+     div { background-color: {!TabColor} !important; } 
+     span { background-color: {!TabColor} !important; } 
+     table { background-color: {!TabColor} !important; } 
+     td { background-color: {!TabColor} !important; } 
+     tr { background-color: {!TabColor} !important; } 
+     th { background-color: {!TabColor} !important; } 
+     border { background-color: {!TabColor} !important; } 
+    
+      
+        
+   </style>
+   
+    
+    <style type="text/css">
+    * { font-size: 12px !important; }
+    
+    h2{font-size:14px !important;}
+       
+    .btn{font-size:10px !important;}
+    textarea{
+    font-size:12px !important;
+    }
+    input{
+    font-size:12px !important;
+    }
+    
+    .helpOrb {
+        background-image: url(/img/help/helpOrbs.gif);
+        background-position: 0 0;
+        width: 20px;
+        height: 15px;
+    }
+    .helpText {
+        background-color: white !important;
+    }
+        
+   
+    </style>
+<script>
+
+// Colour :#D6ECF2
+
+function setFocusOnLoad() {}
+
+//Script for Removing Close icon from tabs
+var elements = parent.document.getElementsByTagName("li");
+//alert('E :'+elements.length);
+for (var i = 0; i < elements.length; i++) {
+   if(elements[i].id.indexOf('__scc-st') > -1) {
+       //console.log("found and fixing tab " + elements[i].id);
+       elements[i].className = "";
+   }
+}
+//Script for Removing Close icon from tabs
+
+
+</script>
+    
+<script>
+
+//CR-00123420 : Added variable in method to hide hover
+function collapse(idd1,idd2,idd3,idd4,idd5,idd6,action)
+{
+id1=document.getElementById(idd1);
+id2=document.getElementById(idd2);
+id3=document.getElementById(idd3);
+id4=document.getElementById(idd4);
+id5=document.getElementById(idd5);
+id6=document.getElementById(idd6);
+
+if(id1.style.display=="none")
+{
+
+id1.style.display="inline";
+id4.style.display="inline";
+id5.style.display="none";
+id6.style.display="inline";
+}
+else
+{
+
+id1.style.display="none";
+
+id4.style.display="none";
+id5.style.display="inline";
+id6.style.display="none";
+}
+if(id2.style.display=="none")
+{
+
+id2.style.display="inline";
+id3.style.display="inline";
+}
+else
+{
+
+id2.style.display="none";
+id3.style.display="none";
+}
+//CR-00123420 starts
+if(action=='plus'){
+    document.getElementById('page:formid:pblock:spanclassid').style.display='none'; 
+}if(action=='minus'){
+    document.getElementById('page:formid:pblock:spanclassid').style.display='inline';
+}
+//CR-00123420 starts
+}
+</script>   
+  
+        <apex:form id="formid"> 
+        
+        <script type="text/javascript">  
+        
+           function refvalue(switcht){           
+                if(switcht=='true'){ 
+                    sforce.console.getEnclosingPrimaryTabId(getsubtabs_pd);
+               }
+            }
+            
+            var getsubtabs_pd = function getsubtabs_pd(result) {              
+                  sforce.console.getSubtabIds(result.id, reftabs_pd);
+                  sforce.console.refreshSubtabByNameAndPrimaryTabId('resInfo', result.id, false);
+                  sforce.console.refreshSubtabByNameAndPrimaryTabId('action', result.id, false); //CR-00110761
+            };
+            
+            var reftabs_pd = function reftabs_pd(result) {
+                 sforce.console.refreshSubtabById(result.ids[0],false);
+                 sforce.console.refreshSubtabById(result.ids[4],false);//CR-00123420 Refresh Resolution tab      
+            };
+            
+    
+        </script>
+   <style>
+.lookupIcon{display:none}
+</style>     
+        <apex:actionFunction name="AutoSave" action="{!savecase}" reRender="mess" status="counterStatus" oncomplete="refvalue('{!refresh}')">
+             <apex:param name="firstParam" assignTo="{!refresh}" value="" />
+        </apex:actionFunction>
+        <apex:actionFunction name="AutoSave2" action="{!saveCaseAndSubject}" reRender="mess" status="counterStatus" oncomplete="refvalue('{!refresh}')">
+             <apex:param name="firstParam" assignTo="{!refresh}" value="" />
+        </apex:actionFunction>
+        <apex:actionFunction name="VerRefresh" action="{!UpdateVersions}" reRender="VersionId1" oncomplete="AutoSave('true');" /> <!--CR-00130456: Autosave on product change-->
+        
+        <apex:pagemessages id="mess"></apex:pagemessages>
+        
+        <apex:pageBlock title="" mode="edit" id="pblock">
+        <script>
+            $('.pbHeader').remove();
+        </script>   
+        
+            <!--<apex:pageBlockButtons location="top">-->
+                
+            <!--</apex:pageBlockButtons> -->
+            
+            
+            <!--<apex:pageblocksection columns="1">-->
+            
+            
+            
+            <!--</apex:pageblocksection>-->
+            
+           
+           
+               
+             
+               
+               <!--<apex:pageBlockSection columns="1" id="pbsection" >-->
+               <table width="98%" align="center" style="padding-right:5%;padding-left:2%">
+               <tr>
+                <td align="center" colspan="2">
+                <c:GSS_Agent_SRCommentsButton caseid="{!case.id}" customLabel="{!SRCommentButtonLabel}" Type="Internal Note Problem Definition" rendered="{!isSRCommentButtonVisible}"/>             
+                <c:GSS_Agent_SendEmailButton caseid="{!case.id}" customLabel="{!SendEmailButtonLabel}" SourceTab="Problem definition template" email="{!case.Technical_Contact_Email__c}" rendered="{!isSendEmailButtonVisible}"/> 
+                <c:GSS_Agent_CallOutboundButton caseid="{!case.id}" customLabel="{!CallOutboundButtonLabel}" phone="{!case.Technical_Contact_Phone__c}" casenumber="{!case.casenumber}" type="Problem" rendered="{!isCallOutboundButtonVisible}"/>  
+                           
+                <c:GSS_Agent_Reassign caseid="{!case.id}" customLabel="{!ReassignButtonLabel}" rendered="{!isReassignButtonVisible}"/> 
+                <c:GSS_Agent_Clone_SR_Button caseid="{!case.id}" customLabel="{!CloneButtonLabel}" rendered="{!isCloneButtonVisible}"/>
+                                                            
+                <c:GSS_Agent_Webex_Button caseid="{!case.id}" customLabel="{!WebexButtonLabel}" casenumber="{!case.casenumber}" rendered="{!isWebexButtonVisible}"/> 
+                <c:GSS_Agent_Public_Notes caseid="{!case.id}" customLabel="{!PublicCommentButtonLabel}" rendered="{!isPublicCommentButtonVisible}"/>      
+                <c:GSS_Agent_Search_iKB casenumber="{!case.casenumber}" customLabel="{!KBButtonLabel}" KBString="{!Case.KB_SearchString__c}" rendered="{!isKBButtonVisible}"/>
+                <c:GSS_Agent_Script_Server_Attachments casenumber="{!case.casenumber}" customLabel="{!ScriptsButtonLabel}" rendered="{!isScriptsButtonVisible}"/>                
+                <c:GSS_Agent_Bugzilla customLabel="{!BugzillaButtonLabel}" rendered="{!isBugzillaButtonVisible}"/>                   
+                <c:GSS_Agent_Upload_Attachments caseid="{!case.id}" customLabel="{!AttachmentButtonLabel}" casenumber="{!case.casenumber}" rendered="{!isAttachmentButtonVisible}"/>                 
+                <c:GSS_Agent_LogACallButton caseid="{!case.id}" customLabel="{!LogACallButtonLabel}" rendered="{!isLogACallButtonVisible}"/> 
+                <c:GSS_Agent_AddSRTeamMembers caseid="{!case.id}" customLabel="{!SRTeamButtonLabel}" rendered="{!isSRTeamButtonVisible}"/>
+                <c:GSS_Agent_URL_Button caseid="{!case.id}" customLabel="{!SRLinkLabel}" rendered="{!isSRLinkVisible}"/><!--CR-00107561 added button-->                
+                <c:GSS_Agent_AuditHistory caseid="{!case.id}" customLabel="{!HistoryLabel}" rendered="{!isHistoryVisible}"/><!--CR-00122294 added button-->
+
+                <apex:commandButton value="Save" action="{!savecase}" rendered="false" reRender="null"/>  <!--CR-00123420 Hide Save button-->
+                <!--<c:GSS_Agent_AvailableButton /><!--CR-00102194 Added Button & CR-00104728 removed button-->
+                
+                </td>
+            </tr>
+               
+
+
+            <tr>
+            <td height="20px" align="left">
+            <apex:outputPanel id="counterid" layout="block">
+                <apex:actionStatus startText=" Save is in progress..." stoptext="" id="counterStatus" startStyle="color:red;font-weight:bold;" />  <!--CR-00107561  updated Saving style-->
+            </apex:outputPanel>  
+            </td>
+            <td align="right">
+            <apex:outputPanel rendered="{!showimage}">
+                    <apex:image url="{!$Resource.MailAlert}"/>
+            </apex:outputPanel> 
+            </td>
+            </tr>           
+               
+               
+               
+               
+               
+                <tr align="center">
+                <td colspan="2">
+                
+                <c:GSS_Agent_SR_Technical_Contact techCon="{!case.Technical_Contact_Name__c}" CaseNumber="{!case.casenumber}" Account="{!case.Account.Name}" AccountId="{!case.AccountId}" Synopsis="{!case.TSE_Synopsis__c}" EAName="{!case.EA_Name__c}" EANumber="{!case.EA_Number__c}" EntitleMentName="{!case.Entitlement.Name}"/> <!--CR-00122294: Account hyperlink--><!-- CR-00138253--><!--CR-00140332-->
+                
+                </td>
+                </tr>
+                </table>
+                
+                
+                
+                
+                <apex:outputpanel id="pbsection">
+                <table  style="width:100%;border: 1px solid green:padding-left:80%;padding-right:6.8%" align="center" cellspacing="0px" cellpadding="0px" >
+                
+                <tr>
+
+                 <th class="labelCol" width="20%" valign="top">
+                 
+                 
+                 <br/>
+                 <apex:outputlabel >
+                 
+                 <apex:outputpanel id="plusminuspanel">
+                 
+                 <apex:outputpanel id="pmpanel" style="margin-left:1%;float:left;width:100%" >
+                    
+                    <!--<b><apex:outputlabel value="Click (" /></b>-->
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+                    <!--CR-00123420 hide hover code added-->
+                    <apex:image url="{!$Resource.Plus_Image}" onclick="collapse('{!$Component.page.formid.pblock.plus}','{!$Component.page.formid.pblock.minus}','{!$Component.page.formid.pblock.descriptionpanel1}','{!$Component.page.formid.pblock.text1}','{!$Component.page.formid.pblock.text2}','{!$Component.page.formid.pblock.tarea}','plus')" id="plus" style="display:inline;width:10px;height:10px;" rendered="{!IF(rows2>2,true,false)}" />
+                    
+                    <apex:image url="{!$Resource.Minus_image}" onclick="collapse('{!$Component.page.formid.pblock.plus}','{!$Component.page.formid.pblock.minus}','{!$Component.page.formid.pblock.descriptionpanel1}','{!$Component.page.formid.pblock.text1}','{!$Component.page.formid.pblock.text2}','{!$Component.page.formid.pblock.tarea}','minus')" id="minus" style="display:none;width:10px;height:3px;" rendered="{!IF(rows2>2,true,false)}"/>
+                    Description
+                    <span class="helpButton" id="example101-title-_help">
+                        <img src="/s.gif" class="helpOrb" style="vertical-align:-5px;margin-right:5px"/>
+    
+                            <script type="text/javascript">      
+                                sfdcPage.setHelp('example101-title', 'Customer description of the issue');       
+                            </script>
+                    </span>
+
+                    <!--<b><apex:outputlabel value=") to see more description." id="text1" style="display:inline;"/></b> -->
+                    <apex:outputlabel value="" id="text1" style="display:inline;" rendered="{!IF(rows2>1,true,false)}"/>
+                    <!--<b><apex:outputlabel value=") to collapse." id="text2" style="display:none;"/></b>-->
+                    <apex:outputlabel value="" id="text2" style="display:none;" rendered="{!IF(rows2>1,true,false)}"/>
+                                 
+                </apex:outputpanel> 
+                
+                
+                 
+                 
+                 
+                 </apex:outputpanel>
+                 
+                 </apex:outputlabel>
+                 
+                 </th>
+                 
+                 
+                <style>
+    
+  
+  div.tooltip:hover {
+    background: #white !important;
+    text-decoration: none;
+  } 
+  div.tooltip span.spanclass {
+    display: none;
+    padding: 1px 1px;
+    width: 500px;
+    height: 150px;  
+    }    
+    
+    <!--div.tooltip:hover span.spanclass {
+    display: inline;
+    position: absolute;
+    border: 1px none;
+    background:none !important;
+    color: #000000;
+    z-index:1;
+    top:inherit;
+    left:inherit;
+    margin-top:-17px;
+    margin-left:1px;
+    
+  }
+  -->
+
+</style> 
+                 <td align="top">
+                 <br/>
+                 
+                 <div class="tooltip" style="display: inline;" id="hoversection">
+                         <!--CR-00107197 : Added reqd description in conditions-->
+                         <apex:inputtextarea styleclass="descriptionReadOnly" rendered="{!IF(caseObj.description=='N/A'|| caseObj.description=='Enter Customer Description Here' || caseObj.description==null,false,true)}" value="{!temp}" rows="2" style="wrap:off;float:left;width:100%;margin-left:0.15%;overflow:hidden;resize: none;background-color:whitesmoke;cursor:context-menu;"  id="tarea"/><!--CR-00130456: style modifications-->
+                         
+                         <apex:inputtextarea onchange="AutoSave2('false')" rendered="{!IF(caseObj.description=='N/A'|| caseObj.description=='Enter Customer Description Here'||caseObj.description==null,true,false)}" value="{!temp}"  id="tarea2" style="width:100%;margin-left:0.15%;" rows="2"/>
+                         
+                         <apex:outputpanel style="display:none" id="descriptionpanel1">
+                        
+
+                        <!--<apex:outputfield value="{!case.description}" style="width:100%;" />-->
+                        
+                         <apex:inputtextarea styleclass="descriptionReadOnly" value="{!case.description}" rows="{!rows}" style="wrap:off;float:left;width:100%;overflow:hidden;resize: none;margin-left:0.15%;background-color:whitesmoke;cursor:context-menu;" /> <!--CR-00130456: style modifications-->
+                        
+                        
+                        </apex:outputpanel>
+                        <br/>
+                        <apex:outputlabel value="_________________________________________________________________" style="color:{!tabcolor};font-size:5px !important;vertical-align:super;"/>
+                        <br/>
+                        <!--CR-00123420 hide hover code added-->
+                        <span class="spanclass" rendered="{!IF(rows2>2,true,false)}" >
+                        <!--This section is used for setting the hover description-->
+                            <apex:inputtextarea id="spanclassid" value="{!case.description}"  readonly="true" richText="false" rows="5" style="border: 3px solid black;width: 492px;height: 342px;resize: none;background-color: white;overflow: auto;color: #000;position:absolute;top:-5px" /> <!--CR-00130456: style modifications-->
+                            
+                            
+                        <!--This section is used for setting the hover description-->
+                        </span>
+                        
+                </div>
+                
+                </td>
+             
+               </tr>
+           <!--CR-00130456: Added Break/Fix radio buttons-->
+               <tr>
+                   <td></td>
+                   <td >
+                       <apex:selectRadio id="scopeRadio" styleclass="scopeRadio" value="{!case.GSS_Workaround_Available__c}" onchange="AutoSave('true');">  <!-- CR-00137136 : AutoSave parameter changed from false to true -->
+                        <script>
+                            if(window.navigator.appName=='Microsoft Internet Explorer'){                        
+                                document.write('<style>fieldset{margin-top:-12px;margin-bottom:-11px;margin-left:-7px;} </style>');
+                            }
+                            else{
+                                document.write('<style>label{vertical-align: bottom;} fieldset{margin-top:-17px;margin-bottom:-11px;margin-left:-10px;} </style>');
+                            }
+                        </script> 
+                            <apex:selectOption itemValue="Break/Fix" itemLabel="Break/Fix"/>
+                            <!-- <apex:selectOption itemValue="Consult" itemLabel="Consult"/> --> <!--Commented for  CR-00137136 -->
+                            <apex:selectOption itemValue="RCA Only" itemLabel="RCA Only"/>
+                            <apex:selectOption itemValue="Waiting First Response" itemLabel="Waiting First Response"/>
+                            <!-- Start - CR-00137136 -->
+                            <apex:selectOption itemValue="Consultative – Customer" itemLabel="Consultative – Customer"/>
+                            <apex:selectOption itemValue="Consultative – VMware" itemLabel="Consultative – VMware"/>
+                            <apex:selectOption itemValue="No Support Required" itemLabel="No Support Required"/>
+                            <apex:selectOption itemValue="Feature Request" itemLabel="Feature Request"/>
+                            <!-- End - CR-00137136 -->
+                        </apex:selectRadio>                   
+                   </td>
+               </tr>
+                <!--***************************-->
+                <!-- CR-00135497 - START - Moved the last two rows 'Product' & 'Product Version' to first two rows.-->
+                <tr>
+                <th class="labelCol" valign="top">
+                <apex:outputlabel value="Product"/>
+                    <span class="helpButton" id="example50-title-_help">
+                        <img src="/s.gif" class="helpOrb"  />
+                        
+                        <script type="text/javascript">      
+                            sfdcPage.setHelp('example50-title', 'Relevant Product Name');       
+                        </script>
+                    </span>
+                </th>
+                    
+                <td class="data2Col" valign="top">
+                <apex:inputField value="{!case.ProductId}" id="product" style="width:300px;height:20px;margin:2px;" onblur="VerRefresh();"> 
+                    <c:Autocomplete objectname="Product2" input_id="{!$Component.product}" numberOfResultsToDisplay="8" /> <!--CR-00123420 Product autocomplete-->
+                </apex:inputField>
+                </td>
+                </tr>
+                
+                <tr>
+                <apex:outputpanel id="ProductVersionIM">
+                    
+                
+                <!--<apex:pageBlockSectionItem id="ProductVersionIM" >-->
+                <th class="labelCol" valign="top">   
+                <apex:outputlabel value="Product Version"/>
+                    <span class="helpButton" id="example51-title-_help">
+                        <img src="/s.gif" class="helpOrb"  />
+                        
+                        <script type="text/javascript">      
+                            sfdcPage.setHelp('example51-title', 'Product version that matches the core issue');       
+                        </script>
+                    </span>
+                </th>
+                <td class="data2Col" valign="top">       
+                 <apex:selectList id="VersionId1" value="{!strProductVersion}"  multiselect="false" 
+                          size="1" style="width:302px;height:23px;margin:2px;"  required="false" onchange="AutoSave('true');"> <!--CR-00102194 modified style-->
+                         <apex:selectOptions value="{!strProductVersionItems}" />
+                  </apex:selectList>
+                
+                </td> 
+                <!--</apex:pageBlockSectionItem>-->
+                </apex:outputpanel>
+               </tr>
+                
+                <!-- CR-00135497 - END -->
+                <!-- ************************-->
+                
+               
+                <apex:variable var="count" value="{!1}"/>
+                <apex:repeat value="{!wrapperList}" var="f" >     
+                    
+                    
+                    
+                    <!--<apex:pageblockSectionItem HelpText="{!f.helpText}" rendered="{!((f.fieldName!='Description')&& (f.fieldName=='Description' && Case[f.fieldName]=='N/A') || (f.fieldName!='Description' && !f.readOnly))}" >-->
+                        <tr style="{!If(!f.readOnly,'','display:none')}">
+                        <th class="labelCol" valign="top">
+                        <apex:outputLabel value="{!f.label}" rendered="{!((f.fieldName!='Description')&& (f.fieldName=='Description' && Case[f.fieldName]=='N/A') || (f.fieldName!='Description' && !f.readOnly))}" />
+                        
+                        <span class="helpButton" id="example{!count}-title-_help" style="{!if(f.helpText!='','display:inline','display:none')}">
+                            <img src="/s.gif" class="helpOrb" style="{!if(f.helpText!='','display:inline','display:none')};" />
+                            
+                            <script type="text/javascript">      
+                                sfdcPage.setHelp('example{!count}-title', '{!f.helpText}');       
+                            </script>
+                        </span>
+                        <apex:variable var="count" value="{!count + 1}"/>
+                        
+                        </th>
+                        <td class="data2Col" valign="top"> <!-- CR-00102194 Added criteria for symptoms field refresh-->
+                        <apex:inputField value="{!Case[f.fieldName]}" required="{!f.required}"  style="{!f.style}" onchange="{!IF(f.fieldname=='GSS_Symptoms__c' || f.fieldname=='GSS_Workaround__c','AutoSave(true)','AutoSave(false)')}" id="ffield" rendered="{!((f.fieldName!='Description')&& (f.fieldName=='Description' && Case[f.fieldName]=='N/A') || (f.fieldName!='Description' && !f.readOnly))}"/>     
+                        </td>
+                       </tr>
+                    
+                    <!--<apex:pageblockSectionItem HelpText="{!f.helpText}" rendered="{!((f.fieldName!='Description')&& (f.fieldName=='Description' && Case[f.fieldName]!='N/A') || (f.fieldName!='Description' && f.readOnly))}" >-->
+                        <tr  style="{!If(f.readOnly,'','display:none')}"> <!--CR-00130456: Remove extra spacing between fields-->
+                        <th class="labelCol" valign="top">
+                        <apex:outputLabel value="{!f.label}" rendered="{!f.readOnly}"/>
+                            <span class="helpButton" id="example{!count}-title-_help" style="{!if(f.helpText!='','display:inline','display:none')}">
+                            <img src="/s.gif" class="helpOrb" style="{!if(f.helpText!='','display:inline','display:none')};" />
+                            
+                            <script type="text/javascript">      
+                                sfdcPage.setHelp('example{!count}-title', '{!f.helpText}');       
+                            </script>
+                        </span>
+                        <apex:variable var="count" value="{!count + 1}"/>
+                        </th>
+                        <td class="data2Col" valign="top">
+                        <apex:inputtext value="{!Case[f.fieldName]}" style="{!f.style}" rendered="{!f.readOnly}" disabled="true"/>
+                        </td>
+                        
+                    <!--</apex:pageBlockSectionItem>  -->
+                        </tr>                                                       
+                </apex:repeat>
+  
+                </table> 
+                  
+            <!--</apex:pageBlockSection>-->
+            </apex:outputpanel>
+            
+            
+            
+        </apex:pageBlock> 
+        <br></br>
+        <br></br>   
+        
+        <apex:pageBlock title="TSE Synopsis History" > 
+        <!--<apex:outputpanel style="overflow:hidden;height:163px;" layout="block">-->
+            <apex:pageBlockTable value="{!SubjectHistory}" var="syn" rendered="{!SubjectHistory.size > 0}"> 
+
+            <!--<apex:column headerValue="TSE Synopsis Old Value" value="{!syn.OldValue__c}" />--><!--CR-00107561 Commenting old value and replacing new value with new value long-->
+            <apex:column headerValue="TSE Synopsis" value="{!syn.NewValueLong__c}" />
+            <apex:column headerValue="Updated By" value="{!syn.CreatedBy__r.Name}" />
+            <apex:column headerValue="Updated Date" value="{!syn.CreatedDate__c}" />
+            
+            </apex:pageBlockTable>
+            <apex:outputText rendered="{!SubjectHistory.size = 0}" value="No records to display"/> 
+        <!-- </apex:outputpanel>-->
+            <!--<apex:outputText rendered="{!SubjectHistory.size = 0}" value="No records to display"/>-->
+        </apex:pageBlock> 
+        
+        </apex:form>
+        
+        <script>
+        if(true)
+        {
+       
+        
+        //document.getElementById('{!$Component.page.formid.pblock.tarea}').rows='{!rows}';
+         
+        }
+          
+        $('.descriptionReadOnly').attr('readonly','readonly'); //CR-00130456: style 
+        </script>
+        
+        
+        
+        
+
+</apex:page>

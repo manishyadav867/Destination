@@ -1,0 +1,845 @@
+<!--
+Component name :  GSS_Agent_Contact_Entitlement
+
+Author  : Accenture
+Purpose : Page for Contact & Entitlement
+Date    : 6-April-2014 - GSS Agent Console Project
+-->
+<!--CR-00096132 : 11-July-2014   UI Changes Present Throughout the Page.-->
+<!--CR-00102194 : 08-Aug-2014   UI changes. Aligned Primary Contact fields-->
+<!--CR-00104728 : 09-Aug-2014 - Removed Availble button-->
+<!--CR-00107561 : 12-Sep-2014 - Adding SR Links button-->
+<!--CR-00122294 : 22-dec-2014 - Adding AuditHistory button-->
+<!--CR-00130456 : 01-Apr-2015 - Hover on account special Handling field-->
+<!--CR-00138253 : 30-Mar-2016 - EA number exposed details -->
+<!--CR-00138264 : 22-Apr-2016- Ability to change account-->
+<!-- CR-00138097 : 14-jun-2016- Added VCE Info tab in Ultra-->
+<!--CR-00140332 :4-august-2016 - added Entitlement Name in banner -->
+<!--CR-00140078 :8-august-2016 - added industry field -->
+<apex:page standardcontroller="case" extensions="GSS_Agent_Contact_Entitlement_Controller"  sidebar="false" showHeader="true">
+    <!--
+    <apex:includeScript value="{!$Resource.Soap_Ajax_30_Connection}"/>
+    <apex:includeScript value="{!$Resource.Soap_Ajax_30_Apex}"/>
+    <apex:includeScript value="{!$Resource.Js_Function}"/>
+    <apex:includeScript value="{!$Resource.Support_Console_30_Integration}"/>
+    <apex:includeScript value="{!$Resource.googleapis_ajax_libs_jquery_1_7_0_jquery_min}"/>
+    -->
+  
+    <apex:includeScript value="/soap/ajax/29.0/connection.js"/>
+    <apex:includeScript value="/soap/ajax/29.0/apex.js"/>
+    <apex:includeScript value="/js/functions.js"/>
+    <apex:includeScript value="/support/console/29.0/integration.js"/>
+    <apex:includeScript value="https://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"/>  
+    <apex:includeScript value="{!$Resource.jquery191}"/>
+    <script>
+        if(window.navigator.appName=='Microsoft Internet Explorer')
+        {
+            document.write('<style>.accountclass{border:1px solid black;width:100%;height:100%;float:right;padding-top:1.8%;padding-bottom:2.8%}</style>');
+            document.write('<style>.msclass{border:0.5px solid black; float:right;width:100%;height:20% !important;margin-top:2%;padding-top:2%;padding-bottom:2%;margin-bottom:1%}</style>');
+            document.write('<style>.alternateclass{border:1px solid black;width:100%;height:85%; float:right;margin-top:1%;padding-top:2%;padding-bottom:2%;}</style>');
+        }
+        
+        else if((navigator.userAgent.toLowerCase().indexOf('chrome') > -1) && (navigator.userAgent.toLowerCase().indexOf('safari') > -1) && (navigator.appName == "Netscape"))
+        { 
+           if({!$User.ProfileId==$Setup.GSS_Agent_Variables__c.PremeirProfileId__c}){
+            document.write('<style>.accountclass{border:1px solid black;width:100%;height:100%;float:right;padding-top:2%;padding-bottom:2%}</style>');
+            document.write('<style>.msclass{border:1px solid black; float:right;width:100%;height:82% !important;margin-top:2.75%;padding-top:3%;padding-bottom:2%;margin-bottom:2.75%;}</style>');
+            document.write('<style>.alternateclass{border:1px solid black;width:100%;height:70%; float:right;margin-top:1.50%;padding-top:2%;padding-bottom:2%;margin-bottom:7.75%;}</style>');
+            }
+            else{
+            document.write('<style>.accountclass{border:1px solid black;width:100%;height:100%;float:right;padding-top:2%;padding-bottom:2%}</style>');
+            document.write('<style>.msclass{border:1px solid black; float:right;width:100%;height:82% !important;margin-top:3.25%;padding-top:3%;padding-bottom:2%;margin-bottom:3%;}</style>');
+            document.write('<style>.alternateclass{border:1px solid black;width:100%;height:70%; float:right;margin-top:1%;padding-top:2%;padding-bottom:2%;margin-bottom:2.5%;}</style>');
+            }
+        }
+        else {
+            if({!$User.ProfileId==$Setup.GSS_Agent_Variables__c.PremeirProfileId__c}){
+           document.write('<style>.accountclass{border:1px solid black;width:100%;height:100%;float:right;padding-top:2%;padding-bottom:2%}</style>');
+            document.write('<style>.msclass{border:1px solid black; float:right;width:100%;height:82% !important;margin-top:3.9%;padding-top:3%;padding-bottom:2%;margin-bottom:2.75%;}</style>');
+            document.write('<style>.alternateclass{border:1px solid black;width:100%;height:70%; float:right;margin-top:2.2%;padding-top:2%;padding-bottom:2%;margin-bottom:7.50%;}</style>');
+            }
+            else{
+            document.write('<style>.accountclass{border:1px solid black;width:100%;height:100%;float:right;padding-top:2%;padding-bottom:2%}</style>');
+            document.write('<style>.msclass{border:1px solid black; float:right;width:100%;height:82% !important;margin-top:4%;padding-top:3%;padding-bottom:2%;margin-bottom:3%;}</style>');
+            document.write('<style>.alternateclass{border:1px solid black;width:100%;height:70%; float:right;margin-top:1%;padding-top:2%;padding-bottom:2%;margin-bottom:0.5%;}</style>');
+            }
+        }
+        
+        //Script for Removing Close icon from tabs
+        var elements = parent.document.getElementsByTagName("li");
+        //alert('E :'+elements.length);
+        for (var i = 0; i < elements.length; i++) {
+           if(elements[i].id.indexOf('__scc-st') > -1) {
+               //console.log("found and fixing tab " + elements[i].id);
+               elements[i].className = "";
+           }
+        }
+        //Script for Removing Close icon from tabs
+    
+    </script>
+    <style>
+    fontsize{
+    font-size:13px !important;
+    }
+    input{
+    height:20px !important;
+    
+    }
+    h2{font-size:14px !important;}
+    
+    select{
+    height:22px !important;
+    width:224px !important;
+    }
+    .btn{
+    height:22px !important;
+    }
+
+    </style>
+    
+    <style>
+     body { background-color: {!TabColor} !important; } 
+     div { background-color: {!TabColor} !important; } 
+     span { background-color: {!TabColor} !important; } 
+     table { background-color: {!TabColor} !important; } 
+     td { background-color: {!TabColor} !important; } 
+     tr { background-color: {!TabColor} !important; } 
+     th { background-color: {!TabColor} !important; } 
+     border { background-color: {!TabColor} !important; } 
+    
+    .helpOrb {
+        background-image: url(/img/help/helpOrbs.gif);
+        background-position: 0 0;
+        width: 20px;
+        height: 15px;
+    }
+    .helpText {
+        background-color:white !important;
+    } 
+        
+    </style>
+    
+    <style type="text/css">
+    * { font-size: 12px !important; }
+    input{font-size: 13px !important;}
+    select{font-size: 13px !important;}
+    .btn{font-size:10px !important;}
+    h6{font-size:12px !important;}
+    td{font-size:12px !important;}
+   
+    </style>
+    <script type="text/javascript">
+       
+        
+        
+        function setFocusOnLoad() {}
+       
+        function enablebutton(){
+           document.getElementById('copy1').disabled =false;
+           //FocusSave();
+           FocusSaveAF();                    
+        }
+        
+        function enablebutton1(){
+           document.getElementById('copy2').disabled =false;
+           FocusSave();
+        }
+        
+        function setContactInfo1(e){
+        
+       
+          var targettemp=e.currentTarget || e.srcElement;
+         
+          if(targettemp.tagName.toLowerCase()!="a"){
+               document.getElementById('copy1').disabled ="true";
+               settheContactInfo();
+           }
+           
+        }
+        
+        function setContactInfo2(e){
+        
+          
+        
+          var targettemp=e.currentTarget || e.srcElement;
+          <!-- if(e.currentTarget.tagName.toLowerCase() !== "a"){-->
+          if(targettemp.tagName.toLowerCase()!="a"){
+               document.getElementById('copy2').disabled ="true";
+               settheContactInfo2();
+           }
+           
+        }
+            
+       function ModFocusSave(e){
+           var targettemp=e.currentTarget || e.srcElement;
+          <!-- if(e.currentTarget.tagName.toLowerCase() !== "a"){-->
+          if(targettemp.tagName.toLowerCase()!="a"){
+               
+               savethecase1();
+           }
+            
+        }
+
+        function FocusSave(){
+            savethecase();                
+        }
+        
+        function checkTab(){
+             
+             document.getElementById('copy2').focus();
+             
+            }
+        function checkTab1(){
+             
+             document.getElementById('copy1').focus();
+             
+            }
+       function checkTab2(){
+             
+             document.getElementById('copy3').focus();
+             
+            } 
+       function refresh(){
+           
+           window.location.reload(); 
+       }             
+
+    </script>
+  
+    <apex:form id="form"> 
+
+            <style>
+            /* This is for the full screen DIV */
+            .popupBackground {
+            /* Background color */
+            background-color:black;
+            opacity: 0.20;
+            filter: alpha(opacity = 20);
+            /* Dimensions */
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 998;
+            position: fixed;
+            /* Mouse */
+            cursor:wait;
+            
+            }
+             
+            /* This is for the message DIV */
+            .PopupPanel {
+            /* Background color */
+            border: solid 2px gray;
+            background-color: white;
+             
+            /* Dimensions */
+            left: 50%;
+            width: 200px;
+            margin-left: -100px;
+            top: 50%;
+            height: 55px;
+            margin-top: -25px;
+            z-index: 999;
+            position: fixed;
+            /* Mouse */
+            cursor:pointer;
+            }
+            </style>
+        
+        <apex:actionFunction name="savethecase" action="{!savecase}" reRender="messages,altPhone,altEmail,tecHistoryRelatedList" status="counterStatus" />
+        <apex:actionFunction name="savethecase1" action="{!savecase}" reRender="messages,altPhone,altEmail,tecHistoryRelatedList" status="counterStatus" />
+        <apex:actionFunction name="settheContactInfo" action="{!setContactInfo}" reRender="contactPhone,contactEmail"  oncomplete="enablebutton()" />
+        <apex:actionFunction name="settheContactInfo2" action="{!display}" reRender="altPhone,altEmail,tecHistoryRelatedList"  oncomplete="enablebutton1()" />
+        <apex:actionFunction name="FocusSaveAF" action="{!savecase}" status="counterStatus" oncomplete="red()" />
+        
+        <apex:pagemessages id="messages"></apex:pagemessages>
+                                           
+        <apex:pageBlock title="" mode="edit">
+        <!--<apex:pageBlockButtons location="top">-->
+        <script>
+            $('.pbHeader').remove();
+        </script>       
+        
+        <table width="90%" align="center" cellspacing="2">
+        <tr/>
+           <tr>
+            <td align="center" colspan="2">            
+            <c:GSS_Agent_SRCommentsButton caseid="{!case.id}" customLabel="{!SRCommentButtonLabel}" Type="Internal Note Contact And Entitlement" rendered="{!isSRCommentButtonVisible}"/>             
+            <c:GSS_Agent_SendEmailButton caseid="{!case.id}" customLabel="{!SendEmailButtonLabel}" SourceTab="Contact Entitlement template" email="{!case.Technical_Contact_Email__c}" rendered="{!isSendEmailButtonVisible}"/> 
+            <c:GSS_Agent_CallOutboundButton caseid="{!case.id}" customLabel="{!CallOutboundButtonLabel}" phone="{!case.Technical_Contact_Phone__c}" casenumber="{!case.casenumber}" type="Contact" rendered="{!isCallOutboundButtonVisible}"/>  
+                       
+            <c:GSS_Agent_Reassign caseid="{!case.id}" customLabel="{!ReassignButtonLabel}" rendered="{!isReassignButtonVisible}"/> 
+            <c:GSS_Agent_Clone_SR_Button caseid="{!case.id}" customLabel="{!CloneButtonLabel}" rendered="{!isCloneButtonVisible}"/>
+                                                        
+            <c:GSS_Agent_Webex_Button caseid="{!case.id}" customLabel="{!WebexButtonLabel}" casenumber="{!case.casenumber}" rendered="{!isWebexButtonVisible}"/> 
+            <c:GSS_Agent_Public_Notes caseid="{!case.id}" customLabel="{!PublicCommentButtonLabel}" rendered="{!isPublicCommentButtonVisible}"/>      
+            <c:GSS_Agent_Search_iKB casenumber="{!case.casenumber}" customLabel="{!KBButtonLabel}" KBString="{!Case.KB_SearchString__c}" rendered="{!isKBButtonVisible}"/>
+            <c:GSS_Agent_Script_Server_Attachments casenumber="{!case.casenumber}" customLabel="{!ScriptsButtonLabel}" rendered="{!isScriptsButtonVisible}"/>               
+            <c:GSS_Agent_Bugzilla customLabel="{!BugzillaButtonLabel}" rendered="{!isBugzillaButtonVisible}"/>                   
+            <c:GSS_Agent_Upload_Attachments caseid="{!case.id}" customLabel="{!AttachmentButtonLabel}" casenumber="{!case.casenumber}" rendered="{!isAttachmentButtonVisible}"/>                 
+            <c:GSS_Agent_LogACallButton caseid="{!case.id}" customLabel="{!LogACallButtonLabel}" rendered="{!isLogACallButtonVisible}"/> 
+            <c:GSS_Agent_AddSRTeamMembers caseid="{!case.id}" customLabel="{!SRTeamButtonLabel}" rendered="{!isSRTeamButtonVisible}"/>
+            <c:GSS_Agent_URL_Button caseid="{!case.id}" customLabel="{!SRLinkLabel}" rendered="{!isSRLinkVisible}"/><!--CR-00107561 added button-->
+            <c:GSS_Agent_AuditHistory caseid="{!case.id}" customLabel="{!HistoryLabel}" rendered="{!isHistoryVisible}"/><!--CR-00122294 added button-->
+       
+            <apex:commandButton value="Save" action="{!savecase}" rendered="false" reRender="disMes"/>
+            <!--<c:GSS_Agent_AvailableButton /><!--CR-00102194 Added Button & CR-00104728 Removed Availble button-->
+            <!--<apex:pageBlockSection columns="2" id="pbNewVal1" >-->
+            
+             
+            
+            <!--</apex:PageBlockSection>-->
+           
+        <!--</apex:pageBlockButtons>-->
+        </td>
+        </tr>
+        <tr>
+        <td align="left" height="20px">
+        <apex:outputPanel id="counterid" layout="block">
+                <apex:actionStatus startText=" Save is in progress..." stoptext="" id="counterStatus" startStyle="color:red;font-weight:bold;"/>  <!--CR-00107561  updated Saving style-->
+        </apex:outputPanel>
+        </td>
+        <td align="right">
+        <apex:outputPanel rendered="{!showimage}">
+                    <apex:image url="{!$Resource.MailAlert}"/>
+        </apex:outputPanel>
+        
+        
+        
+        </td>
+        
+        
+        </tr>
+        
+        <tr>
+         <td colspan="2" style="padding-right:-2%">
+         <c:GSS_Agent_SR_Technical_Contact techCon="{!case.Technical_Contact_Name__c}" CaseNumber="{!case.casenumber}" Account="{!case.Account.Name}" AccountId="{!cse.AccountId}" Synopsis="{!case.TSE_Synopsis__c}" EAName="{!case.EA_Name__c}" EANumber="{!case.EA_Number__c}" EntitleMentName="{!case.Entitlement.Name}"/> <!--CR-00122294: Account hyperlink--><!-- CR-00138253--><!---CR-00140332-->
+         </td>
+        </tr>
+        
+        <tr>
+        <td colspan="2">
+                 <br/><br/>
+        
+        </td>
+        </tr>         
+            <tr height="80%">
+            <td   height="100%" style="padding-right:3%;">
+            <table style="border:1px solid black;width:100%;height:100%;float:left;padding-top:2%;padding-bottom:2%" >
+
+            <tr><th style="margin-left:20% !important" class="labelCol" valign="top">  
+                  
+                   <script>
+                   if(window.navigator.appName=='Microsoft Internet Explorer')
+                   {
+                       document.write('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+                   }
+                   else
+                   {
+                       //document.write('&nbsp;');
+                   }
+                   </script>
+                 Technical Contact Name 
+                <span class="helpButton" id="example101-title-_help">
+                    <img src="/s.gif" class="helpOrb"/>
+
+                    <script type="text/javascript">      
+                        sfdcPage.setHelp('example101-title', 'The name of the primary technical contact for the SR. ***Mandatory Field***');       
+                    </script>
+                </span>
+                </th>
+                <td class="data2Col" align="left" > 
+                <apex:inputField value="{!Case.Technical_Contact_Name__c}" styleclass="Technical_Contact_Name__c" style="width:{!styleFieldWidth}px;" />
+                </td></tr>
+                <tr>
+                <th style="valign:left" class="labelCol fontsize" valign="top">  
+                Technical Contact Phone
+                
+                <span class="helpButton" id="example102-title-_help">
+                    <img src="/s.gif" class="helpOrb"/>
+
+                    <script type="text/javascript">      
+                        sfdcPage.setHelp('example102-title', 'The phone number of the person who is the primary technical contact. ***Mandatory Field***');       
+                    </script>
+                </span>
+                </th>
+                <td class="data2Col" valign="top" >
+                <apex:inputField value="{!Case.Technical_Contact_Phone__c}" styleclass="Technical_Contact_Phone__c" style="width:{!styleFieldWidth}px;" />
+                </td></tr>
+                <tr>
+                <th style="valign:left;" class="labelCol fontsize" valign="top">  
+                        Technical Contact Email
+                
+                <span class="helpButton" id="example103-title-_help">
+                    <img src="/s.gif" class="helpOrb"/>
+
+                    <script type="text/javascript">      
+                        sfdcPage.setHelp('example103-title', 'The email address of the person who is the primary technical contact. ***Mandatory Field***');       
+                    </script>
+                </span>
+                </th>
+                
+                <td  class="data2Col" valign="top" >
+                <apex:inputField value="{!Case.Technical_Contact_Email__c}" styleclass="Technical_Contact_Email__c" style="width:{!styleFieldWidth}px;" />
+                </td>
+                </tr>
+                
+                <tr>
+                <td></td>
+                <td valign="bottom" align="left" height="100%" style="padding-bottom:2px">
+                <input type="button" value="Save" onclick="FocusSave();setTimeout(function(){ red()}, 3000);" rerender="tecHistoryRelatedList" 
+                 class="buttonClass"/>
+                </td>
+                               
+                </tr>
+            </table></td>
+            
+            
+            
+            <td  height="100%" style="padding-left:1%;">
+            <table class="accountclass">
+            <tr><th class="labelCol fontsize" valign="top"> 
+             
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Primary Contact Name 
+                
+                <span class="helpButton" id="example105-title-_help">
+                    <img src="/s.gif" class="helpOrb"/>
+
+                    <script type="text/javascript">      
+                        sfdcPage.setHelp('example105-title', 'Authorized person on customer account');       
+                    </script>
+                </span>
+                </th>
+                <td  class="data2Col"> 
+                <apex:inputField value="{!Case.ContactId}" styleclass="ContactId" id="conId" style="width:{!styleFieldWidth}px;" onblur="setContactInfo1(event)" >
+                
+                     <!--<apex:actionSupport event="onblur" action="{!setContactInfo}" rerender="contactPhone,contactEmail" status="actionStatus1" oncomplete="FocusSave()"/>-->
+                     <!--<c:Autocomplete objectname="Contact" input_id="{!$Component.ConId}" numberOfResultsToDisplay="10" />-->
+                
+                </apex:inputField>
+                
+                </td></tr>
+                <tr><th class="labelCol fontsize" valign="top">  
+               Primary Contact Phone 
+                <span class="helpButton" id="example106-title-_help">
+                    <img src="/s.gif" class="helpOrb"/>
+
+                    <script type="text/javascript">      
+                        sfdcPage.setHelp('example106-title', 'Phone number of authorized person on customer account');       
+                    </script>
+                </span>
+                </th>
+                <td  class="data2Col">
+                <!--<apex:inputField value="{!Case.Contact.Phone}" styleclass="ContactPhone" />-->
+                <apex:inputText value="{!ContactPhone}" styleclass="ContactPhone" id="contactPhone" style="width:{!styleFieldWidth}px;" onchange="FocusSave()" disabled="true"/>
+                </td></tr>
+                <tr>
+                <th class="labelCol fontsize" valign="top">  
+                Primary Contact Email
+                
+                <span class="helpButton" id="example107-title-_help">
+                    <img src="/s.gif" class="helpOrb"/>
+
+                    <script type="text/javascript">      
+                        sfdcPage.setHelp('example107-title', 'Customer email of authorized person on customer account');       
+                    </script>
+                </span>
+                </th>
+                <td  class="data2Col">
+                <!--<apex:inputField value="{!Case.Contact.Email}" styleclass="ContactEmail" />-->
+                <apex:inputText value="{!ContactEmail}" styleclass="ContactEmail" id="contactEmail" style="width:{!styleFieldWidth}px;" onchange="FocusSave()" disabled="true"/>
+                </td></tr>
+                
+                <tr>
+               <td></td>
+                <td align="left" height="100%" valign="bottom"> 
+                <input type="button" id="copy1" value="Copy" onclick="copyAsTechContact('contact');" rerender="tecHistoryRelatedList" class="buttonClass"/>
+                 </td>
+                 
+                </tr>
+            </table></td>
+            </tr>
+            
+            
+            
+           <tr height="80%">
+           <td  height="100%" rowspan="2" style="padding-right:3%;">
+            <table style="border:1px solid black;width:100%;height:70%;float:left;margin-top:4%;padding-top:2%;padding-bottom:2%;">         
+            <tr>
+            <!--CR-00138264 Starts-->
+               <apex:outputPanel rendered="{!$User.ProfileId==$Setup.GSS_Agent_Variables__c.PremeirProfileId__c}">
+                <th class="labelCol fontsize" valign="top">
+                Account Name               
+                <span class="helpButton" id="example107-title-_help">
+                    <img src="/s.gif" class="helpOrb"/>
+
+                    <script type="text/javascript">      
+                        sfdcPage.setHelp('example107-title', 'Account Information');       
+                    </script>
+                </span>
+                </th>
+                <td  class="data2Col">                
+                <apex:inputField value="{!cse.Accountid}" styleclass="AccountId" id="AccountId" style="width:{!styleFieldWidth}px;" onchange="FocusSaveAF();" rendered="True"/>
+                </td> 
+               </apex:outputPanel>
+            <!--CR-00138264 Ends-->
+            </tr>               
+            <apex:variable var="count" value="{!1}"/>
+            <apex:repeat value="{!wrapperList}" var="f">     
+            <tr>
+            <th style="valign:left;margin-top:-2px" class="labelCol fontsize" valign="top"> 
+                <script>
+                   if(window.navigator.appName=='Microsoft Internet Explorer')
+                   {
+                       document.write('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp');
+                   }
+                   else
+                   {
+                      // document.write('&nbsp;&nbsp;&nbsp;');
+                   }
+                   </script>
+                   
+                <apex:outputLabel value="{!f.label}"/>
+                <span class="helpButton" id="example{!count}-title-_help" style="{!if(f.helpText!='','display:inline','display:none')}">
+                    <img src="/s.gif" class="helpOrb" style="{!if(f.helpText!='','display:inline','display:none')}"/>
+
+                    <script type="text/javascript">      
+                        sfdcPage.setHelp('example{!count}-title', '{!f.helpText}');       
+                    </script>
+                </span>
+                <apex:variable var="count" value="{!count + 1}"/>
+            </th>
+            
+            <td  style="{!IF(f.fieldName!='EntitlementId','padding-right:7%','')}" class="data2Col" valign="top">
+                <apex:inputField value="{!Case[f.fieldName]}"   rendered="{!!f.readOnly}" required="{!f.required}" styleClass="{!SUBSTITUTE(f.fieldName,'.','')}"  onblur="{!IF(f.fieldName = 'EntitlementId'||f.fieldName ='AccountId', 'ModFocusSave(event)', '' )}" onchange="{!IF(f.fieldName != 'EntitlementId', 'FocusSave()', '' )}" style="{!f.style}" /> 
+                 
+                
+                <apex:inputText value="{!Case[f.fieldName]}" title="{!Case[f.fieldName]}" rendered="{!f.readOnly}" disabled="true" style="{!f.style}"/> <!--CR-00130456: Hover on account special Handling field--><!-- CR-00140078: removed 'GSS_Account_Special_Handling__c' field check from title -->     
+           
+            </td></tr>
+           
+            </apex:repeat>
+             
+            </table></td>
+            
+            <td  height="100%" style="padding-left:1%;" valign="bottom">
+            <table class="msclass" cellpadding="0" cellspacing="0" >
+            <tr><th class="labelCol fontsize" valign="top"> 
+            
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Secondary Contact Name 
+                
+                <span class="helpButton" id="example115-title-_help">
+                    <img src="/s.gif" class="helpOrb"/>
+
+                    <script type="text/javascript">      
+                        sfdcPage.setHelp('example115-title', 'Secondary authorized person on customer account');       
+                    </script>
+                </span>
+                </th>
+                <td  class="data2Col" valign="top"> 
+                
+                <apex:inputField value="{!Case.GSS_Alternate_Contact__c}" styleclass="GSS_Alternate_Contact__c" id="altContact" style="width:{!styleFieldWidth}px;" onblur="setContactInfo2(event)">
+                    
+                <!--<apex:actionSupport event="onblur" action="{!display}" rerender="altPhone,altEmail,tecHistoryRelatedList" status="counterStatus" oncomplete="FocusSave()"/>-->
+                               
+                <!--<c:Autocomplete objectname="Contact" input_id="{!$Component.altContact}" numberOfResultsToDisplay="10" />-->
+                </apex:inputField>
+                </td></tr>
+                <tr><th class="labelCol fontsize" valign="top">  
+                Secondary Contact Phone
+                
+                <span class="helpButton" id="example116-title-_help">
+                    <img src="/s.gif" class="helpOrb"/>
+
+                    <script type="text/javascript">      
+                        sfdcPage.setHelp('example116-title', 'Secondary phone number of authorized person on customer account');       
+                    </script>
+                </span>
+                </th>
+                <td  class="data2Col" valign="top">
+                <!--<apex:inputField value="{!Case.GSS_Alternate_Phone__c}" styleclass="GSS_Alternate_Phone__c" id="altPhone" />-->
+                <apex:inputText value="{!AlternatePhone}" styleclass="GSS_Alternate_Phone__c" id="altPhone" style="width:{!styleFieldWidth}px;" disabled="true"/>
+                
+                </td></tr>
+                <tr><th class="labelCol fontsize" valign="top">  
+                Secondary Contact Email
+                
+                <span class="helpButton" id="example117-title-_help">
+                    <img src="/s.gif" class="helpOrb"/>
+
+                    <script type="text/javascript">      
+                        sfdcPage.setHelp('example117-title', 'Secondary email of authorized person on customer account');       
+                    </script>
+                </span>
+                </th>
+                <td  class="data2Col" valign="top">
+               <!--<apex:inputField value="{!Case.GSS_Alternate_Email__c}" styleclass="GSS_Alternate_Email__c" id="altEmail"/>-->
+               <apex:inputText value="{!AlternateEmail}" styleclass="GSS_Alternate_Email__c" id="altEmail" style="width:{!styleFieldWidth}px;" disabled="true"/>
+                </td></tr>
+                <tr>
+                <td></td>
+                <td colspan="1"  align="left" valign="bottom" height="100%">
+                <input type="button" value="Copy" id="copy2" onclick="copyAsTechContact('alternatecontact');" rerender="tecHistoryRelatedList"  
+                class="buttonClass"/>
+                </td>
+                
+                </tr>
+            </table></td></tr>
+            <tr>
+            
+            <td  height="100%" style="padding-left:1%;" valign="bottom">
+            <table class="alternateclass">
+
+                <tr>
+                <th class="labelCol fontsize" valign="top">&nbsp;<!--Preferred Contact Name-->
+                <!-- CR-00138097 : 14-jun-2016- Added VCE Info tab in Ultra-->
+               <apex:outputLabel value="{!if(isVceProfile,"Customer Contact Name","Preferred Contact Name")}"/>
+                <span class="helpButton" id="example118-title-_help">
+                    <img src="/s.gif" class="helpOrb"/>
+
+                    <script type="text/javascript">      
+                        <!--sfdcPage.setHelp('example118-title', 'Alternative contact name for the SR'); -->
+                        <!-- CR-00138097 : 14-jun-2016- Added VCE Info tab in Ultra-->
+                        sfdcPage.setHelp('example118-title', "{!if(isVceProfile,$Label.Customer_Contact_help_text,'Alternative contact name for the SR')}");                        
+                    </script>
+                </span>
+                </th>
+                <td  class="data2Col" valign="top"><apex:inputField value="{!Case.GSS_Alternate_Contact_Info__c}" styleclass="GSS_Alternate_Contact_Info__c" style="width:{!styleFieldWidth}px;" onchange="FocusSave()" />
+                </td>
+                </tr>
+                <tr><th class="labelCol fontsize" valign="top"><!--Preferred Contact Phone-->
+                 <!-- CR-00138097 : 14-jun-2016- Added VCE Info tab in Ultra-->
+                <apex:outputLabel value="{!if(isVceProfile,"Customer Contact Phone","Preferred Contact Phone")}"/>
+                <span class="helpButton" id="example119-title-_help">
+                    <img src="/s.gif" class="helpOrb"/>
+
+                    <script type="text/javascript">      
+                        <!--sfdcPage.setHelp('example119-title','Preferred phone number for the alternative contact name for the SR'); -->
+                           <!-- CR-00138097 : 14-jun-2016- Added VCE Info tab in Ultra-->                       
+                         sfdcPage.setHelp('example119-title', "{!if(isVceProfile,$Label.Custom_Phone_Number_For_VCE,'Preferred phone number for the alternative contact name for the SR')}");                       
+                    </script>
+                    </span>
+                </th><td  class="data2Col" valign="top"><apex:inputField value="{!Case.GSS_Preferred_Phone_Number__c}" styleclass="GSS_Preferred_Phone_Number__c" style="width:{!styleFieldWidth}px;" onchange="FocusSave()" />
+                </td></tr>
+                
+                <!--kjdkdjhdkhdk-->
+                <tr>
+                <th class="labelCol fontsize" valign="top"><!--Preferred Contact Email-->
+                    <!-- CR-00138097 : 14-jun-2016- Added VCE Info tab in Ultra-->
+                     <apex:outputLabel value="{!if(isVceProfile, "Customer Contact Email", "Preferred Contact Email")}" />              
+                <span class="helpButton" id="example121-title-_help">
+                    <img src="/s.gif" class="helpOrb"/>
+
+                    <script type="text/javascript">      
+                       <!-- sfdcPage.setHelp('example121-title','Alternative Contact Email');--> 
+                       <!-- CR-00138097 : 14-jun-2016- Added VCE Info tab in Ultra-->
+                        sfdcPage.setHelp('example121-title', "{!if(isVceProfile,$Label.Customer_Contact_Email_For_VCE_Profile,'Alternative Contact Email')}");                         
+                    </script>
+                </span>
+                </th>
+                <td  class="data2Col" valign="top"><apex:inputField value="{!Case.Alternate_Contact_Email__c}" styleclass="Alternate_Contact_Email__c" style="width:{!styleFieldWidth}px;" onchange="FocusSave()" />
+                </td>
+                </tr>
+                <!--fhkjdhdkhdkhd-->
+               
+                <tr>
+            <td></td>    
+                <td colspan="1" align="left" valign="bottom" height="100%">
+                <input type="button" value="Copy" id="copy3" onclick="copyAsTechContact('preferedcontact');" rerender="tecHistoryRelatedList" 
+                style="float:left;" class="buttonClass"/>
+
+            </td>
+            
+            </tr>
+            </table></td></tr>
+            </table>
+                <!--<apex:pageBlockSection columns="2" title="Edit"> 
+                <apex:repeat value="{!wrapperList}" var="f">     
+                <apex:pageblockSectionItem HelpText="{!f.helpText}">
+                <apex:outputLabel value="{!f.label}"/>
+                <apex:inputField value="{!Case[f.fieldName]}"  required="{!f.required}" styleClass="{!SUBSTITUTE(f.fieldName,'.','')}"  /> 
+                </apex:pageBlockSectionItem>
+
+                </apex:repeat>
+                </apex:pageBlockSection> -->    
+        
+  
+        </apex:pageBlock>   
+        <br></br>
+        <br></br>
+        <apex:pageBlock title="Additional Technical Contacts History" id="tecHistoryRelatedList"> 
+            <apex:pageBlockTable value="{!techContactList}" var="tec" rendered="{!techContactList.size > 0}"> 
+
+            <apex:column headerValue="Additional Technical Contact Name" value="{!tec.Additional_Technical_Contact_Name__c}"/>
+            <apex:column headerValue="Additional Technical Contact Phone" value="{!tec.Additional_Technical_Contact_Phone__c}" />
+            <apex:column headerValue="Additional Technical Contact Email" value="{!tec.Additional_Technical_Contact_Email__c}" />
+            <apex:column headerValue="Date Changes" value="{!tec.CreatedDate}"/>
+            <apex:column headerValue="Select as Technical Contact" width="6%">
+           
+            <input type="radio" name="selectRadio" onclick="copyAsTechContact1('{!tec.Additional_Technical_Contact_Name__c}','{!tec.Additional_Technical_Contact_Phone__c}','{!tec.Additional_Technical_Contact_Email__c}');" />
+           
+           <!--<input type="radio"  name="selectRadio" >
+           <apex:actionSupport event="onclick" onsubmit="copyAsTechContact1('{!tec.Additional_Technical_Contact_Name__c}','{!tec.Additional_Technical_Contact_Phone__c}','{!tec.Additional_Technical_Contact_Email__c}');"
+                                 
+                                rerender="tecHistoryRelatedList"/>
+           </input>-->
+           
+           </apex:column>
+            </apex:pageBlockTable>
+            <apex:outputText rendered="{!techContactList.size=0}" value="No records to display"/>
+        </apex:pageBlock>
+<apex:actionStatus id="actionStatus" stopText="" onstop="checkTab()">
+           <apex:facet name="start">
+            
+                <div>
+                <div class="popupBackground" />
+                <div class="PopupPanel">
+                <table border="0" width="100%" height="100%">
+                <tr>
+                <td align="center"><b>Please Wait</b></td>
+                </tr>
+                <tr>
+               <td align="center"><img src="{!$Resource.ProgressBar}"/></td>
+                </tr>
+                </table>
+                </div>
+                </div>
+               
+           </apex:facet>
+        </apex:actionStatus>
+        
+        <apex:actionStatus id="actionStatus1" stopText="" onstop="checkTab1()">
+           <apex:facet name="start">
+            
+                <div>
+                <div class="popupBackground" />
+                <div class="PopupPanel">
+                <table border="0" width="100%" height="100%">
+                <tr>
+                <td align="center"><b>Please Wait</b></td>
+                </tr>
+                <tr>
+               <td align="center"><img src="{!$Resource.ProgressBar}"/></td>
+                </tr>
+                </table>
+                </div>
+                </div>
+               
+           </apex:facet>
+        </apex:actionStatus>
+        
+        
+        </apex:form>
+
+        <style>        
+            .widthPx {
+                
+                <!--{!TimeZoneStyle}-->
+                margin-left:2px;
+            }
+            .buttonClass{
+                height:22px !important;
+            }
+        </style>
+        
+        <script>
+        jQuery.noConflict();
+        
+        jQuery(document).ready(function(){
+               
+            setTimeout(function(){
+                resizePicklistWidth();
+                jQuery('.GSS_Support_Customer_Region__c').bind('change', resizePicklistWidth);
+            }, 500);            
+        });
+        
+        function resizePicklistWidth() {
+            
+            jQuery('tr > td > span > select').each(function(){          
+                //jQuery(this).prop('style','width:220px');    
+                jQuery(this).prop('class','widthPx');                                
+            });
+        }     
+
+        function copyAsTechContact(check) {
+
+            try {
+               
+                var technicalContactName = jQuery('.Technical_Contact_Name__c');
+                var technicalContactPhone = jQuery('.Technical_Contact_Phone__c');
+                var technicalContactEmail = jQuery('.Technical_Contact_Email__c');
+                if(check == 'contact'){
+                
+
+                    var contactName = jQuery('.ContactId');
+                    var contactEmail = jQuery('.ContactEmail');
+                    var contactPhone = jQuery('.ContactPhone');
+                    
+                    technicalContactName.val(contactName.val());
+                    technicalContactPhone.val(contactPhone.val());
+                    technicalContactEmail.val(contactEmail.val());
+                    //alert(technicalContactName.val());
+                 }
+                 if(check == 'alternatecontact'){
+
+                    var altcontactName = jQuery('.GSS_Alternate_Contact__c');
+                    var altcontactEmail = jQuery('.GSS_Alternate_Email__c');
+                    var altcontactPhone = jQuery('.GSS_Alternate_Phone__c');
+                    
+                    technicalContactName.val(altcontactName.val());
+                    technicalContactPhone.val(altcontactPhone.val());
+                    technicalContactEmail.val(altcontactEmail.val());
+                    //alert(altcontactPhone.val());
+                 } 
+                 if(check == 'preferedcontact'){
+                    var altcontactName = jQuery('.GSS_Alternate_Contact_Info__c');
+                    var prefPhone = jQuery('.GSS_Preferred_Phone_Number__c');
+                    var altcontactEmail = jQuery('.Alternate_Contact_Email__c');
+                    
+                    
+                    technicalContactName.val(altcontactName.val());
+                    technicalContactPhone.val(prefPhone.val());
+                    technicalContactEmail.val(altcontactEmail.val());
+                    //alert(prefPhone.val());
+                 }
+                 
+                 FocusSave();  
+                 setTimeout(function(){ red()}, 3000); 
+            } catch (e) { alert(e); }
+        }
+
+        
+        function copyAsTechContact1(Name,Phone,Email)
+        {
+            var technicalContactName = jQuery('.Technical_Contact_Name__c');
+            var technicalContactPhone = jQuery('.Technical_Contact_Phone__c');
+            var technicalContactEmail = jQuery('.Technical_Contact_Email__c');
+            
+            technicalContactName.val(Name);
+            technicalContactPhone.val(Phone);
+            technicalContactEmail.val(Email);
+            FocusSave();
+            setTimeout(function(){red()}, 3000);
+                         
+                               
+        }
+        
+       
+         
+        function red(){  
+                  //console.log('QQQQQ inside red');
+             sforce.console.getEnclosingPrimaryTabId(refptab_ce);                         
+        }
+        var tabId;
+        var refptab_ce= function refptab_ce(result) { 
+           //console.log('QQQQQ'+result.id);
+            tabId = result.id;
+            sforce.console.refreshPrimaryTabById(tabId, false);
+            
+        }; 
+      
+    
+     </script>
+     
+</apex:page>

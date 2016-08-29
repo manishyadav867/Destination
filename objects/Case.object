@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+	<fields>
+        <fullName>QnC_Case_Share_With__c</fullName>
+        <externalId>false</externalId>
+        <formula>IF(
+AND(
+RecordTypeId == LEFT($Setup.QnC_Case_Properties__c.QnC_Case_Record_Type_Id__c,15) , 
+QnC_Case_Type__c== &apos;APJ&apos;
+),
+&quot;APJ Commissions&quot;,
+IF(AND(
+RecordTypeId == LEFT($Setup.QnC_Case_Properties__c.QnC_Case_Record_Type_Id__c,15) , 
+QnC_Case_Type__c== &apos;EMEA&apos;
+),
+&quot;EMEA Commissions&quot;,
+IF(AND(
+RecordTypeId == LEFT($Setup.QnC_Case_Properties__c.QnC_Case_Record_Type_Id__c,15) , 
+QnC_Case_Type__c== &apos;AMER-Comp&apos;
+),
+&quot;AMER SalesOps&quot;,
+IF(AND(
+RecordTypeId == LEFT($Setup.QnC_Case_Properties__c.QnC_Case_Record_Type_Id__c,15) , 
+OR(QnC_Case_Type__c== &apos;Corporate&apos;,QnC_Case_Type__c==&apos;Corporate-Salesops&apos;,
+QnC_Case_Type__c== &apos;Corporate-APJ&apos;,QnC_Case_Type__c==&apos;Corporate-AMER&apos;,
+QnC_Case_Type__c== &apos;Corporate-EMEA&apos;)
+),
+&quot;Corporate Commissions&quot;,
+IF(AND(
+RecordTypeId == LEFT($Setup.QnC_Case_Properties__c.QnC_Case_Record_Type_Id__c,15) , 
+QnC_Case_Type__c== &apos;GlobalOps&apos;
+),
+&quot;GlobalOps&quot;,
+IF(AND(
+RecordTypeId == LEFT($Setup.QnC_Case_Properties__c.QnC_Case_Record_Type_Id__c,15) , 
+OR(QnC_Case_Type__c== &apos;Geo-Corporate-Salesops&apos;,QnC_Case_Type__c==&apos;Geo-Corporate&apos;,
+QnC_Case_Type__c== &apos;Geo-Corporate-APJ&apos;,QnC_Case_Type__c==&apos;Geo-Corporate-AMER&apos;,
+QnC_Case_Type__c== &apos;Geo-Corporate-EMEA&apos;)
+),
+&quot;Geo Corporate&quot;,
+IF(AND(
+RecordTypeId == LEFT($Setup.QnC_Case_Properties__c.QnC_Case_Record_Type_Id__c,15) , 
+QnC_Case_Type__c== &apos;AMER&apos;
+),
+&quot;AMER Commissions&quot;,&quot;&quot;)))))))</formula>
+        <label>QnC - Case Share With</label>
+        <required>false</required>
+        <trackHistory>false</trackHistory>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+		<validationRules>
+        <fullName>Prevent_Sev1_cases_assignment_to_Prem</fullName>
+        <active>true</active>
+        <description>CR-00138560 
+Prevent Sev 1 cases from being added to the following queues: 
+GSS Prem Transfers - NASA 
+GSS Prem Transfers - EMEA 
+GSS Prem Transfers - APJ</description>
+        <errorConditionFormula>AND ( ISPICKVAL(Priority, &quot;1 - Critical&quot;) , OR( AND (ISCHANGED(OwnerId),   OwnerId = $Label.GSS_Prem_Transfers_APJ ), AND (ISCHANGED(OwnerId),OwnerId = $Label.GSS_Prem_Transfers_NASA), AND (ISCHANGED(OwnerId), OwnerId = $Label.GSS_Prem_Transfers_EMEA)), $RecordType.Name =&quot;GSS Technical Support&quot;)</errorConditionFormula>
+        <errorMessage>The Prem Transfer Queues are restricted from Sev 1 SRs. Please transfer Sev 1 SRs via the End of Day tool or directly via the Premier Services Management Team.</errorMessage>
+    </validationRules>
+	 <webLinks>
+        <fullName>Escalate</fullName>
+        <availability>online</availability>
+        <displayType>button</displayType>
+        <linkType>javascript</linkType>
+        <masterLabel>Escalate</masterLabel>
+        <openType>onClickJavaScript</openType>
+        <protected>false</protected>
+        <url>{!REQUIRESCRIPT(&quot;/soap/ajax/13.0/connection.js&quot;)} 
+{!REQUIRESCRIPT(&quot;/soap/ajax/13.0/apex.js&quot;)} 
+
+var caseEscalated = &apos;{!Case.IsEscalated}&apos;; 
+var caseId =&apos;{!Case.Id}&apos;; 
+var childrecds= sforce.connection.query(&quot;Select id From Case WHERE ParentId= &apos;&quot; + caseId + &quot;&apos;&quot;); 
+var childrecdArray = childrecds.getArray(&quot;records&quot;); 
+var childcount=childrecdArray.length;
+var caseObj = new sforce.SObject(&apos;Case&apos;);
+caseObj.Id = &apos;{!Case.Id}&apos;;
+
+	if(caseEscalated == true) //Check If the case is already escalated 
+	{ 
+		alert(&quot;This case is already escalated&quot;);
+        location.reload(true); 		
+	} else if(childcount==0) // No notification for cases where child records are not there. 
+	{ 
+		caseObj.isEscalated= true;
+		var result = sforce.connection.update([caseObj]);
+			if (result[0].success==&apos;false&apos;) {
+				alert(result[0].errors.message);
+			} else {
+				location.reload(true);
+			}	
+	} else // Notification for parent cases 
+	{ 
+		alert(&quot;This case is being worked by multiple teams, You will receive resolution/response shortly.&quot;);
+         location.reload(true);
+	} 
+//}</url>
+    </webLinks>
+	<!--<fieldUpdates>
+        <fullName>QnC_Update_Case_Type</fullName>
+        <field>QnC_Case_Type__c</field>
+        <formula>IF(OwnerId = LEFT( $Setup.QnC_Case_Properties__c.Queue_APJ_Commissions_Id__c,15),&quot;APJ&quot;, 
+(IF(OwnerId = LEFT( $Setup.QnC_Case_Properties__c.Queue_AMER_Commissions_Id__c,15),&quot;AMER&quot;, 
+(IF(OwnerId = LEFT( $Setup.QnC_Case_Properties__c.Queue_EMEA_Commissions_Id__c,15),&quot;EMEA&quot;,
+(IF(OwnerId = LEFT( $Setup.QnC_Case_Properties__c.Queue_Amer_Sales_Ops__c,15),&quot;Amer-Comp&quot;,
+(IF(AND(OwnerId = LEFT( $Setup.QnC_Case_Properties__c.Queue_Corporate_Commissions_Id__c,15),Parent.QnC_Case_Type__c=&quot;APJ&quot;),&quot;Corporate-APJ&quot;,
+(IF(AND(OwnerId = LEFT( $Setup.QnC_Case_Properties__c.Queue_Corporate_Commissions_Id__c,15),Parent.QnC_Case_Type__c=&quot;AMER&quot;),&quot;Corporate-AMER&quot;, 
+(IF(AND(OwnerId = LEFT( $Setup.QnC_Case_Properties__c.Queue_Corporate_Commissions_Id__c,15),Parent.QnC_Case_Type__c=&quot;EMEA&quot;),&quot;Corporate-EMEA&quot;,
+(IF(AND(OwnerId = LEFT( $Setup.QnC_Case_Properties__c.Queue_Corporate_Commissions_Id__c,15),Parent.QnC_Case_Type__c=&quot;GlobalOps&quot;),&quot;Corporate-Salesops&quot;, 
+(IF(OwnerId = LEFT( $Setup.QnC_Case_Properties__c.Queue_Corporate_Commissions_Id__c,15),&quot;Corporate&quot;,
+(IF(AND(OwnerId = LEFT( $Setup.QnC_Case_Properties__c.Queue_Geo_Commissions_Id__c,15),Parent.QnC_Case_Type__c=&quot;APJ&quot;),&quot;Geo-Corporate-APJ&quot;,
+(IF(AND(OwnerId = LEFT( $Setup.QnC_Case_Properties__c.Queue_Geo_Commissions_Id__c,15),Parent.QnC_Case_Type__c=&quot;AMER&quot;),&quot;Geo-Corporate-AMER&quot;,
+(IF(AND(OwnerId = LEFT( $Setup.QnC_Case_Properties__c.Queue_Geo_Commissions_Id__c,15),Parent.QnC_Case_Type__c=&quot;EMEA&quot;),&quot;Geo-Corporate-EMEA&quot;, 
+(IF(AND(OwnerId = LEFT( $Setup.QnC_Case_Properties__c.Queue_Geo_Commissions_Id__c,15),Parent.QnC_Case_Type__c=&quot;GlobalOps&quot;),&quot;Geo-Corporate-Salesops&quot;, 
+(IF(OwnerId = LEFT( $Setup.QnC_Case_Properties__c.Queue_Geo_Sales_Commission__c,15),&quot;GlobalOps&quot;,&quot;Geo-Corporate&quot;)))))))))))))))))))))))))))</formula>
+        <name>QnC - Update Case Type</name>
+        <notifyAssignee>false</notifyAssignee>
+        <operation>Formula</operation>
+        <protected>false</protected>
+    </fieldUpdates> -->
+</CustomObject>

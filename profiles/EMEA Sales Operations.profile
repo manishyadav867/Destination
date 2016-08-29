@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Profile xmlns="http://soap.sforce.com/2006/04/metadata">
+    <classAccesses>
+        <apexClass>LeadManagement</apexClass>
+        <enabled>false</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>OpportunityUpdateValidationCheck</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>OpportunityUpdateValidationCheckTest</apexClass>
+        <enabled>false</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>PLM_AcceptLeadsTest</apexClass>
+        <enabled>false</enabled>
+    </classAccesses>
+    <custom>true</custom>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Opportunity.Lead_Source_Most_Recent__c</field>
+        <readable>false</readable>
+    </fieldPermissions>
+  <recordTypeVisibilities>
+        <default>true</default>
+        <recordType>Opportunity.Managed_Sales_Opportunity</recordType>
+        <visible>true</visible>
+    </recordTypeVisibilities>
+    <userLicense>Salesforce</userLicense>
+</Profile>

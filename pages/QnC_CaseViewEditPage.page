@@ -1,0 +1,175 @@
+<!--
+ Modified By  : Avaneesh Singh
+ Modified Date: 12 july 2013
+ Purpose      : Parent Case need to be accessible by the user as he is getting insufficient privilege. Passing on more attribute caseParentRec="{!caseParentRec}" to component  QnC_CaseDetailComponent  
+// ************************Version Updates********************************************
+// Date         Developer               Description
+// -----------------------------------------------------------------------------------
+// 16 Aug 2016  Veera           CR-00140228: Case Escalation Logic
+// ************************************************************************************
+-->
+
+<apex:page controller="QnC_CaseViewEditPageController" tabStyle="Case" >
+
+    <!--Added for CR-00140228: Style Class for Case Escalation Popup -- START-->
+    <style type="text/css">
+        .custPopup{
+            background-color:#e6e6e6;
+            border-width: 1px;
+            border-style: groove;
+            border-color: green;
+            z-index: 9999;
+            left: 50%;
+            padding:10px;
+            position: absolute;
+            width: 500px;
+            margin-left: -250px;
+            top:100px;
+        }
+        .popupBackground{
+            background-color:#E6E6FA;
+            opacity: 0.50;
+            filter: alpha(opacity = 50);
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 9998;
+        }
+       .confirmButton {
+            background:#E6E6FA;
+            width:70px
+        }
+    </style>
+    <!--Added for CR-00140228 --  END -->
+
+<apex:variable value="{!IF($CurrentPage.Parameters.isView=='1', false, true)}" var="isEditPage"/>
+<apex:variable value="{!CaseAccessLevel}" var="caseAccessStr"/>
+<apex:variable value="{!CaseEscalated}" var="caseEscalated"/> 
+
+<table>
+    <tr>
+        <td><apex:sectionHeader title="{!IF(isEditPage, 'Case Edit', 'Case')}" subtitle="{!caseRec.CaseNumber}"></apex:sectionHeader></td>
+        <td style="display:table-cell; vertical-align:middle; text-align:center"><apex:image value="/s.gif" styleclass="escalatedLarge" title="Escalated" rendered="{!caseRec.isEscalated}"/></td>
+     </tr>
+ </table>
+    
+<apex:outputPanel rendered="{!caseAccessStr=='None'}">
+    <apex:pageMessage severity="error" strength="3" summary="You do not have sufficient access to view/edit the case." title="Error"/> 
+</apex:outputPanel>
+
+<!-------------------- CASE EDIT/DETAIL PAGE ------------------>
+<apex:outputPanel rendered="{!NOT(caseAccessStr=='None')}">
+<apex:form >
+<apex:pageMessages />
+<apex:pageBlock mode="{!IF(AND(isEditPage, caseAccessStr=='Edit'), 'edit', 'mainDetail')}" title="{!IF(AND(isEditPage, caseAccessStr=='Edit'), 'Edit Case', 'Case Detail')}">
+    <apex:pageBlockButtons >
+        <apex:outputPanel rendered="{!AND(NOT(isEditPage), caseAccessStr=='Edit')}">
+            <input type="button" style="width:40px;" class="btn" onclick="window.location.href='/apex/QnC_CaseViewEditPage?id={!caseRec.Id}&isView=0';" value="Edit" />
+            <apex:commandButton action="{!escalateCase}"  value="Escalate" rendered="{!AND(NOT(isEditPage), caseAccessStr=='Edit',caseEscalated==false)}"/>
+        </apex:outputPanel>
+        <apex:outputPanel rendered="{!AND(isEditPage, caseAccessStr=='Edit')}" >
+            <apex:commandButton action="{!saveCase}" value="Save" rendered="{!isEditPage}" />
+            <input type="button" class="btn" onclick="window.location.href='/apex/QnC_CaseViewEditPage?id={!caseRec.Id}&isView=1';" value="Cancel" />
+        </apex:outputPanel>
+    </apex:pageBlockButtons>
+    
+    <!--Added by: Veera for CR-00140228: Output Panel for Popup Window -- START -->
+        <apex:outputPanel id="Escalationpopup">
+        <apex:outputPanel styleClass="popupBackground" layout="block" rendered="{!displayPopUp}"/>
+            <apex:outputPanel styleClass="custPopup" layout="block" rendered="{!displayPopUp}">
+                <center><br/>{!$Label.QnCEscalationMsg}<br/><br/></center>
+               <center><input type="button" class="confirmButton" onclick="window.location.href='/apex/QnC_CaseViewEditPage?id={!caseRec.Id}&isView=1';" value="Ok" /></center>
+            </apex:outputPanel>
+        </apex:outputPanel>
+    <!--Added by: Veera for CR-00140228: Output Panel for Popup Window -- End -->
+    
+    <c:QnC_CaseDetailComponent caseRec="{!caseRec}" caseParentRec="{!caseParentRec}" caseParentAcc="{!caseParentAccess}" editMode="{!AND(isEditPage, caseAccessStr=='Edit')}"/>
+</apex:pageBlock>
+
+
+<apex:outputPanel id="CaseRelatedLists" rendered="{!NOT(isEditPage)}">
+<!-------------------- RELATED LIST: RELATED CASES ------------------>
+<apex:pageBlock title="Related Cases">
+    <apex:pageBlockTable rendered="{!relatedCases.size>0}" value="{!relatedCases}" var="relatedCase">
+        <apex:column headerValue="Case" width="100">
+            <apex:outputLink rendered="{!$User.Id!=relatedCase.OwnerId}" value="/apex/QnC_CaseViewEditPage?id={!relatedCase.Id}&isView=1">{!relatedCase.CaseNumber}</apex:outputLink>
+            <apex:outputLink rendered="{!$User.Id==relatedCase.OwnerId}" value="/{!relatedCase.Id}">{!relatedCase.CaseNumber}</apex:outputLink>
+            <apex:image value="/s.gif" styleclass="escalatedSmall" title="Escalated" rendered="{!relatedCase.isEscalated}"/>
+        </apex:column>
+        <apex:column value="{!relatedCase.Case_Subject__c}" headerValue="Subject" width="250" style="word-wrap:break-word;"/>
+        <apex:column value="{!relatedCase.Priority}" />
+        <apex:column value="{!relatedCase.Status}" />
+        <apex:column value="{!relatedCase.OwnerId}" />
+        <apex:column value="{!relatedCase.CreatedDate}" />
+        <apex:column value="{!relatedCase.LastModifiedDate}" />
+    </apex:pageBlockTable>
+    <apex:outputText value="No records to display" rendered="{!NOT(relatedCases.size>0)}"/>
+</apex:pageBlock>
+
+<!-------------------- RELATED LIST: CASE TEAM MEMBERS ------------------>
+<apex:pageBlock title="Case Team">
+    <apex:pageBlockTable rendered="{!caseTeamMembers.size>0}" value="{!caseTeamMembers}" var="teamMember">
+        <apex:column value="{!teamMember.Team_Member__c}" headerValue="Team Member"/>
+        <apex:column value="{!teamMember.Team_Member_Role__c}" headerValue="Role"/>
+        <apex:column value="{!teamMember.Case_Access_Level__c}" headerValue="Access Level"/>
+    </apex:pageBlockTable>
+    <apex:outputText value="No records to display" rendered="{!NOT(caseTeamMembers.size>0)}"/>
+</apex:pageBlock>
+
+
+<!-------------------- RELATED LIST: CASE COMMENTS ------------------>
+<apex:pageBlock title="Case Comments">
+    <apex:pageBlockButtons location="top"  rendered="{!caseAccessStr=='Edit'}"> 
+        <apex:outputLink styleClass="btn" style="text-decoration:none;" value="/apex/QnC_CaseCommentPage?action=new&caseid={!caseRec.Id}">New</apex:outputLink>
+    </apex:pageBlockButtons>
+    
+    <apex:pageBlockTable var="caseComm" value="{!relatedCaseComments}" rendered="{!relatedCaseComments.size >0}">
+        <apex:column headerValue="Action" width="130" styleClass="actionColumn">
+            <apex:outputPanel rendered="{!caseAccessStr=='Edit'}">
+                <apex:outputLink value="/apex/QnC_CaseCommentPage?action=edit&id={!caseComm.Id}" styleClass="actionLink">Edit</apex:outputLink>
+                &nbsp;|&nbsp; 
+                <apex:outputLink value="/apex/QnC_CaseCommentPage?action=del&id={!caseComm.Id}" styleClass="actionLink">Del</apex:outputLink>
+            </apex:outputPanel>
+        </apex:column>
+        <apex:column value="{!caseComm.IsPublished}" headerValue="Public" width="130"/>
+        <apex:column headerValue="Comment">
+            <apex:outputText value="Created By: {!caseComm.CreatedBy.Name} ({!caseComm.CreatedDate})" style="font-weight:bold;"/><br/>
+            <apex:outputField value="{!caseComm.CommentBody}"/> 
+        </apex:column>
+    </apex:pageBlockTable>
+    
+    <apex:outputText value="No records to display" rendered="{!NoT(relatedCaseComments.size >0)}"/>
+</apex:pageBlock>
+
+
+<!-------------------- RELATED LIST: ATTACHMENTS ------------------>
+<apex:pageBlock title="Attachments">
+    <apex:pageBlockButtons location="top" rendered="{!caseAccessStr=='Edit'}">
+        <apex:outputLink styleClass="btn" style="text-decoration:none;" value="/apex/QnC_AttachmentUpload?action=new&caseId={!caseRec.Id}">New</apex:outputLink>
+    </apex:pageBlockButtons>
+    
+    <apex:pageBlockTable var="attach" value="{!relatedAttachments}" rendered="{!relatedAttachments.size >0}">
+        <apex:column headerValue="Action" width="130" styleClass="actionColumn">
+            <apex:outputLink value="/apex/QnC_AttachmentViewer?action=view&id={!attach.Id}" styleClass="actionLink">View</apex:outputLink>
+            <apex:outputPanel rendered="{!caseAccessStr=='Edit'}">
+                &nbsp;|&nbsp;
+                <apex:outputLink value="/apex/QnC_AttachmentUpload?action=del&id={!attach.Id}&caseId={!caseRec.Id}" styleClass="actionLink">Del</apex:outputLink>
+            </apex:outputPanel>
+        </apex:column>
+        <apex:column headerValue="File Name" width="300">
+            <apex:outputLink value="/apex/QnC_AttachmentViewer?action=view&id={!attach.Id}">{!attach.Name}</apex:outputLink>
+        </apex:column>
+        <apex:column headerValue="Size"  value="{!attach.bodyLength}"/>
+        <apex:column headerValue="Last Modified"  value="{!attach.LastModifiedDate}"/>
+        <apex:column headerValue="Created By"  value="{!attach.CreatedById}"/>
+    </apex:pageBlockTable>
+    
+    <apex:outputText value="No records to display" rendered="{!NoT(relatedAttachments.size >0)}"/>
+</apex:pageBlock>
+</apex:outputPanel>
+
+</apex:form>
+</apex:outputPanel>
+</apex:page>

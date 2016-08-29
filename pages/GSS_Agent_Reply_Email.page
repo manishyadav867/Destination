@@ -1,0 +1,472 @@
+<!--
+Component name :  GSS_Agent_Reply_Email
+
+Author  : Accenture
+Purpose : Page for Reply Email Page
+Date    : 6-April-2014 - GSS Agent Console Project
+-->
+<!--CR-00096132  11-July-2014   UI Changes Present Throughout the Page.-->
+<!--CR-00102156  18-July-2014   Hotfix. Removing unwanted caseId from ccbcc lookup urls.-->
+<!--CR-00107561  24-Sept-2014   Proper sending of Emails -->
+<!--CR-00110761  16-Oct-2014    Additional template buttons -->
+<!--CR-00116268  26-Dec-2014    Reformatting page for better performance. Changes present throughout the page -->
+<!--CR-00123420  13-Feb-2015    Personal template code-->
+<!--CR-00134366  14-Mar-2016    GSS Technical Support-Optimized Templates-->
+<!--CR-00139055  15-Jul-2016    Adding Status and Sub-Status fields to Reply and ReplyAll Page-->
+
+<apex:page standardController="emailmessage" extensions="GSS_Agent_Reply_Email_Controller" id="editpage" action="{!setreandfw}" sidebar="false" showHeader="false" >
+
+    <apex:includeScript value="{!$Resource.jquery191}"/>
+    <!--CR-00107197: Enhanced rich text editor script--> 
+    <script src="/ckeditor/ckeditor-3.6.2/ckeditor.js?t=3.6.2.3" type="text/javascript"/> 
+    
+    <script>
+    if(window.navigator.appName=='Microsoft Internet Explorer')
+    {
+        document.write('<style>.inputfileclass{width:83px;vertical-align:bottom;}</style>');
+        document.write('<style>.tableclass{border-collapse:collapse;margin-left:15%;}</style>');
+        document.write('<style>.subjectclass{width:886px;height:20px;}</style>');
+        document.write('<style>.tdclass1{width: 176px !important}</style>');
+        document.write('<style>.tdclass2{width: 173px !important;}</style>');
+        document.write('<style>.tdclass3{width: 890px !important;}</style>');
+        document.write('<style>.tdclass4{padding-left:4.5% !important;}</style>');
+        document.write('<style>.emptytd{display:none !important}</style>');
+    }
+    else
+    {
+        document.write('<style>.inputfileclass{width:200px;vertical-align:bottom;}</style>');
+        document.write('<style>.tableclass{border-collapse:collapse;margin-left:-5px;}</style>');
+        document.write('<style>.subjectclass{width:871px;height:20px;}</style>');
+        document.write('<style>.tdclass1{width: 171px !important}</style>');
+        document.write('<style>.tdclass2{width: 170px !important;}</style>');
+        document.write('<style>.tdclass3{width: 877px !important;}</style>');
+        document.write('<style>.tdclass4{padding-right:2.54% !important;}</style>');
+    }
+    
+    function openDocumentUpload(e) {
+       setLastMousePosition(e);
+       openPopup('/widg/filepicker_fs.jsp?lktp=015&mode=1&eid=00YQ0000000cJjz&utype=00P&omode=1&otype=2', 'doc', 450, 450, 'width=450,height=450,scrollbars=yes,toolbar=no,status=no,directories=no,menubar=no,resizable=1', true);
+    }
+    function submitFormNoSave() {
+        return true;
+    }
+    var delim = ";";
+    function pickupValue(additionalToValue, ccValue, bccValue) {    
+        if(additionalToValue.length!=0){
+            document.getElementById('editpage:editform:pb:addTo').value+=(additionalToValue+';');
+        }       
+        if(ccValue.length!=0){
+            document.getElementById('editpage:editform:pb:addCC').value+=(ccValue+';');
+        }       
+        if(bccValue.length!=0){
+            document.getElementById('editpage:editform:pb:addBCC').value+=(bccValue+';');
+        }
+        closePopup();    
+    }
+    
+    function openTextPreview() { 
+
+        var currPreviewWindow;
+        currPreviewWindow = window.open('', 'cpw', 'width=450,height=400,scrollbars=yes,toolbar=no,status=no,directories=no,menubar=no,resizable=yes');
+        currPreviewWindow.document.open();
+        currPreviewWindow.document.write('<!DOCTYPE html><html><style>p{margin-top:0px; margin-bottom:0px;}</style><body bgcolor="#FFFFFF" marginwidth="2" marginheight="2" style="font-family:Arial;font-size:10pt;color:000000">');
+        currPreviewWindow.document.write(document.getElementById("{!$Component.editpage.editform.pb.theTextarea}").value);
+        currPreviewWindow.document.write('</body></html>');
+        currPreviewWindow.document.close();
+
+    }
+    
+    function clickthis(text){
+        var tmp = document.createElement("DIV");
+        var stripstyle = document.getElementById("{!$Component.editpage.editform.pb.theTextarea}").value;  
+        tmp.innerHTML = stripstyle.replace(/<style([\s\S]*?)<\/style>/gi, ''); 
+        document.getElementById("{!$Component.editpage.editform.pb.textarea3}").value=tmp.textContent||tmp.innerText;         
+        if(text=='nosnip'){
+            reply();
+        }
+        if(text=='snip'){
+            snipemail();
+        }
+    }
+    
+    function disablesend(){
+        document.getElementById('{!$Component.editpage.editform.pb2.pbb1.sendemail}').style.display="none";    
+        document.getElementById('{!$Component.editpage.editform.pb2.pbb1.sendemail2}').style.display="none";       
+    }
+    //CR-00107561: Do not close the page when error is thrown. Added errorFound check
+    if('{!disablesend}'=='true' && '{!errorFound}'=='false'){
+        //alert('Mail has been sent successfully. Click OK to close.');
+        window.close();
+    }    
+    if('{!disablesend2}'=='true'){
+        document.getElementById('{!$Component.editpage.editform.pb2.pbb1.sendemail}').style.display="inline";
+        document.getElementById('{!$Component.editpage.editform.pb2.pbb1.sendemail2}').style.display="inline";
+    }
+    
+    $('.pbButton ').attr('align','center');
+    $('.pbTitle ').remove();
+    
+    </script>
+    
+    <style>
+    
+        .atdiv{background-color:#C9E9FD !important;}             
+        .tdclass{width: 378px !important; }     
+        body { background-color: #B0C4DE !important; } 
+        div { background-color: #B0C4DE !important; }
+        border { background-color: #B0C4DE !important; }
+        
+        /* This is for the full screen DIV */
+        .popupBackground {
+            /* Background color */
+            background-color:black;
+            opacity: 0.20;
+            filter: alpha(opacity = 20);
+            /* Dimensions */
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 998;
+            position: fixed;
+            /* Mouse */
+            cursor:wait;        
+        }
+         
+        /* This is for the message DIV */
+        .PopupPanel {
+            /* Background color */
+            border: solid 2px gray;
+            background-color: white;             
+            /* Dimensions */
+            left: 50%;
+            width: 200px;
+            margin-left: -100px;
+            top: 50%;
+            height: 55px;
+            margin-top: -25px;
+            z-index: 999;
+            position: fixed;
+            /* Mouse */
+            cursor:pointer;
+        }
+
+    </style>
+    
+    <apex:pagemessages />
+    <apex:actionStatus id="deleteStatus" stopText="">
+        <apex:facet name="start">
+            <div>
+                <div class="popupBackground" />
+                <div class="PopupPanel">
+                    <table border="0" width="100%" height="100%">
+                        <tr>
+                            <td align="center"><b>Please Wait</b></td>
+                        </tr>
+                        <tr>
+                            <td align="center"><img src="{!$Resource.ProgressBar}"/></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </apex:facet>
+    </apex:actionStatus>
+    
+    <apex:form id="editform">
+    
+        <apex:actionfunction action="{!reply}" name="reply"/>    
+        <apex:actionfunction action="{!snipEmail}" name="snipemail"/>
+        
+        <apex:pageblock id="pb2">
+        
+            <apex:pageBlockButtons location="top" id="pbb1">            
+                <apex:actionregion >
+                    <apex:commandButton value="" onClick="return false;" style="border-color: #B0C4DE;background: #B0C4DE;"/> <!--CR-000123420 On hitting enter in the email subject line email is lost -->    
+                    <apex:commandButton value="Cancel" onclick="window.close();" /> 
+                    <apex:commandButton value="Send with thread" oncomplete="clickthis('nosnip');" onclick="disablesend();" id="sendemail" />
+                    <apex:commandButton value="Send" oncomplete="clickthis('snip');" onclick="disablesend();" id="sendemail2"/>         
+                </apex:actionregion>
+            </apex:pageBlockButtons> 
+        <c:GSS_Agent_SR_Technical_Contact techCon="{!emmes.parent.Technical_Contact_Name__c}" CaseNumber="{!emmes.parent.casenumber}" Account="{!emmes.parent.Account.Name}" Synopsis="{!caseSynopsis}"/> <!-- CR-00116268: Tse synopsis hover in SR title-->
+        </apex:pageblock>
+        
+        <apex:pageBlock id="pb">
+     
+        <apex:outputPanel id="pbs">
+        
+            <table cellspacing="2" cellpadding="2"  align="center">
+            <tr>
+                <td align="right" valign="top">
+                    <b>To:</b>
+                </td>
+                <td>
+                    <apex:inputTextarea value="{!to}" styleClass="tdclass" id="toField"/>
+                </td>
+                <td ></td>
+                <td width="7%" align="right" valign="top">
+                    <b> CC:</b>
+                </td>
+
+                <td>
+                <apex:inputTextarea styleClass="tdclass" id="addCC" value="{!cc}"  title="Additional To" />
+                </td>
+                <td valign="top">
+                    <a href="javascript:%20openPopup%28%27%2F_ui%2Fcore%2Femail%2Fauthor%2FEmailCCBccLookup%27%2C%20%27CCBCCLookup%27%2C%20420%2C%20490%2C%20%27width%3D720%2Cheight%3D490%2Ctoolbar%3Dno%2Cstatus%3Dno%2Cdirectories%3Dno%2Cmenubar%3Dno%2Cresizable%3Dyes%2Cscrollable%3Dno%27%2C%20true%29%3B" id="addCC_lookup" onclick="setLastMousePosition(event)" 
+                    title="Additional To Lookup (New Window)"><img src="/s.gif" alt="Additional To Lookup (New Window)"  class="lookupIcon"  title="Additional To Lookup (New Window)"/></a> <br/>
+                </td>
+            </tr>
+            
+            <tr>
+                <td  width="10%" align="right" valign="top">
+                    <b>Additional To:</b>  
+                </td>
+                <td>
+                    <apex:inputTextarea styleClass="tdclass" id="addTo" value="{!addto}"    title="Additional To" />
+                </td>
+                <td valign="top">
+                    <a href="javascript:%20openPopup%28%27%2F_ui%2Fcore%2Femail%2Fauthor%2FEmailCCBccLookup%27%2C%20%27CCBCCLookup%27%2C%20420%2C%20490%2C%20%27width%3D720%2Cheight%3D490%2Ctoolbar%3Dno%2Cstatus%3Dno%2Cdirectories%3Dno%2Cmenubar%3Dno%2Cresizable%3Dyes%2Cscrollable%3Dno%27%2C%20true%29%3B" id="addTo_lookup" onclick="setLastMousePosition(event)" 
+                    title="Additional To Lookup (New Window)"><img src="/s.gif" alt="Additional To Lookup (New Window)"  class="lookupIcon"  title="Additional To Lookup (New Window)"/></a> 
+                </td>
+                <td align="right" valign="top">
+                    <b>BCC:</b> 
+                </td>
+                <td>
+                    <apex:inputTextarea styleClass="tdclass" id="addBCC" value="{!bcc}"  title="Additional To"/>
+                </td>
+                <td valign="top">
+                    <a href="javascript:%20openPopup%28%27%2F_ui%2Fcore%2Femail%2Fauthor%2FEmailCCBccLookup%27%2C%20%27CCBCCLookup%27%2C%20420%2C%20490%2C%20%27width%3D720%2Cheight%3D490%2Ctoolbar%3Dno%2Cstatus%3Dno%2Cdirectories%3Dno%2Cmenubar%3Dno%2Cresizable%3Dyes%2Cscrollable%3Dno%27%2C%20true%29%3B" id="addBCC_lookup" onclick="setLastMousePosition(event)" 
+                    title="Additional To Lookup (New Window)"><img src="/s.gif" alt="Additional To Lookup (New Window)"  class="lookupIcon"  title="Additional To Lookup (New Window)"/></a>
+                </td>
+            </tr>
+
+            <tr>
+                <td align="right">
+                    <b>Subject:</b>
+                </td>
+                <td colspan="5" >
+                    <div class="requiredInput">
+                    <div class="requiredBlock"></div>
+                        <apex:inputText styleClass="subjectclass" required="true" id="subjectField" value="{!emailmessage.subject}"  disabled="false"/>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="emptytd"> </td>
+                <td colspan="5" align="left" class="tdclass4">
+                    <table  valign="top"  cellspacing="0" cellpadding="0" styleClass="tableclass" align="center" >
+                        <apex:actionRegion >
+                            <tr align="center">  
+                            <td  align="center" styleClass="tdclass3">
+                            <apex:commandButton value="{!label1}" action="{!template1}" rendered="{!isVisible1}"  styleClass="tdclass1" >
+                            </apex:commandButton>&nbsp;
+
+                            <apex:commandButton value="{!label2}" action="{!template2}" rendered="{!isVisible2}" styleClass="tdclass2" >
+                            </apex:commandButton>&nbsp;
+
+                            <apex:commandButton value="{!label3}" action="{!template3}" rendered="{!isVisible3}" styleClass="tdclass2" >
+                            </apex:commandButton>&nbsp;  
+
+                            <apex:commandButton value="{!label4}" action="{!template4}" rendered="{!isVisible4}" styleClass="tdclass2" >
+                            </apex:commandButton>&nbsp; 
+
+                            <apex:commandButton value="{!label5}" action="{!template5}" rendered="{!isVisible5}" styleClass="tdclass1" >      
+                            </apex:commandButton>
+                            </td>
+                            </tr>
+
+                            <!--CR-00110761 Added buttons-->
+                            <tr>
+                            <td  align="center" styleClass="tdclass3">
+
+                            <apex:commandButton value="{!label6}" action="{!template6}" rendered="{!isVisible6}" styleClass="tdclass1" >
+                            </apex:commandButton>&nbsp;
+
+                            <apex:commandButton value="{!label7}" action="{!template7}" rendered="{!isVisible7}" styleClass="tdclass2">
+                            </apex:commandButton>&nbsp;
+
+                            <apex:commandButton value="{!label8}" action="{!template8}" rendered="{!isVisible8}" styleClass="tdclass2">
+                            </apex:commandButton>&nbsp;
+
+                            <apex:commandButton value="{!label9}" action="{!template9}" rendered="{!isVisible9}" styleClass="tdclass2">
+                            </apex:commandButton>&nbsp;
+
+                            <apex:commandButton value="{!label10}" action="{!template10}" rendered="{!isVisible10}" styleClass="tdclass1">
+                            </apex:commandButton>
+
+                            </td>
+                            </tr>
+                            <!--CR-00110761 Added buttons ends-->
+                        </apex:actionRegion>
+                    </table>
+                </td>
+            </tr>
+            </table>
+            <!--CR-00139055  Starts-->
+            <apex:actionregion >
+      <table cellspacing="2" cellpadding="2"  align="center" width="100%">
+      <tr><td width="45%"><div align="right">
+      <b>Status : </b>
+      <apex:selectList size="1" value="{!statusVal}" title="Status" required="true">
+                            <apex:selectoptions value="{!status}"/>
+                            <apex:actionSupport event="onchange" rerender="subSId"/>
+                        </apex:selectList>
+        </div>
+        </td>
+        <td width="10%">&nbsp;</td>
+        <td width="45%">
+        <div align="left">
+        <b>Sub Status : </b>
+                        <apex:selectList size="1" value="{!subStatusVal}" id="subSId" title="Sub Status">
+                            <apex:selectoptions value="{!subStatus}"/>
+                        </apex:selectList>
+        </div>
+        </td>
+        </tr>
+        </table>
+        </apex:actionregion> 
+        <!--CR-00139055  Ends-->
+        
+            <apex:actionFunction action="{!saveattachment}" name="saveatt" />
+            
+            <apex:actionStatus id="setTemplate" stopText="">
+                <apex:facet name="start">
+                    <div>
+                        <div class="popupBackground" />
+                        <div class="PopupPanel">
+                            <table border="0" width="100%" height="100%">
+                                <tr>
+                                    <td align="center"><b>Processing....</b></td>
+                                </tr>
+                                <tr>
+                                    <td align="center"><img src="{!$Resource.SendEmailTemplateApplyImage}"/></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </apex:facet>
+            </apex:actionStatus>
+        
+        </apex:outputPanel>
+        
+        <!--CR-00107197: making rich text false-->
+        <apex:inputTextarea id="theTextarea" richText="false"  rows="25" value="{!emailmessage.HTMLBody}" style="width:0; height:0"/>
+        
+        <apex:outputPanel id="template">
+            <apex:inputtextarea value="{!emailmessage.textbody}" rows="10" cols="100" id="textarea3" style="display: none;"/>
+        </apex:outputPanel>
+
+        <apex:pageBlockSection columns="1" >
+
+
+<apex:outputpanel >
+
+<!--CR-00109419  Code for Personal templates. Added Table-->
+<table style="width:100%">
+    <tr>
+    <td>
+    <div align="left">
+    <apex:outputLabel value="Attach File:"  style="vertical-align:super;" ></apex:outputLabel>
+    <apex:inputFile value="{!attbody}" filename="{!attname}" onchange="callattach();" styleclass="inputfileclass"/>
+    <!--<apex:commandButton value="Attach File" action="{!saveattachment}" style="float:left;" onclick="disablesend();"/>-->
+    </div>
+    </td>
+    
+    <td>
+    <!--CR-00134366  Added GSS Technical Support-Optimized picklist starts-->
+    <div align="right"> 
+      <b>GSS Technical Support-Optimized: </b>&nbsp;
+      <apex:selectList value="{!selectedTemplate_Id}" size="1" title="GSS Technical Support-Optimized" >
+        <apex:selectOptions value="{!GSSTemplateOptions}"/>
+        <apex:actionSupport event="onchange" action="{!setSelected_Template}" rendered="true"/>
+      </apex:selectList>
+    </div>
+    
+    <!--CR-00134366  Added GSS Technical Support-Optimized picklist Ends-->
+    </td>
+    </tr>
+    </table>
+    <table style="width:100%">
+    <tr>
+    <td>
+    <!--CR-00109419  Added Personal Template picklist-->
+    <div align="right">   
+      <b>Personal Template: </b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      <apex:selectList value="{!selectedTemplateId}" size="1" title="Personal Template" >
+        <apex:selectOptions value="{!myPersonalTemplateOptions}"/>
+        <apex:actionSupport event="onchange" action="{!setSelectedTemplate}"/>
+      </apex:selectList>   
+    </div>
+    
+    </td>
+    </tr>
+    </table>
+</apex:outputpanel>
+
+</apex:pageBlockSection>   
+
+        <apex:actionRegion id="aaa">
+
+            <apex:outputPanel id="attachmentlist">
+                <div style="background-color:#C9E9FD;height: 20px;margin-top:5px;" class="atdiv">
+                <b>Attachments</b>
+                </div>
+                
+                <apex:pageBlockTable value="{!tempatt}" var="at" title="Attachments" id="pbt">
+                    <apex:column headerValue="Action">
+                        <apex:commandLink action="{!deleteAttachment}" value="Delete" reRender="attachmentlist" status="setTemplate">
+                            <apex:param name="deletefile" value="{!at.name}"/>
+                        </apex:commandLink>
+                    </apex:column>
+
+                    <apex:column value="{!at.name}"/>
+                    
+                </apex:pageBlockTable>
+            </apex:outputPanel>
+        </apex:actionRegion>
+        </apex:pageBlock>
+    </apex:form>
+    
+    <script type="text/javascript"> 
+    
+        multilineString =document.getElementById("{!$Component.editpage.editform.pb.textarea3}").value; 
+        
+        function callattach(){
+            disablesend();
+            saveatt();
+        }    
+
+        
+        $(document.getElementById('editpage:editform:pb:pbt:j_id85header:sortDiv')).css('cssText','background-color:#F2F3F3 !important;');    
+        $(document.getElementById('editpage:editform:pb:pbt:j_id88header:sortDiv')).css('cssText','background-color:#F2F3F3 !important;');
+        
+        //CR-00107197: Enhanced rich text editor script start
+        //ckeditor replace with options 
+        //CKEDITOR.timestamp = '3.6.2.1'; 
+        //var prototocolAndHost = window.location.protocol + '//' + window.location.host; 
+        
+        var editor=CKEDITOR.replace( '{!$Component.editpage.editform.pb.theTextarea}', { 
+        language: 'en', 
+        uiColor: '#B0C4DE'
+        }); 
+        CKEDITOR.config.resize_enabled = false; 
+        //CKEDITOR.config.scayt_autoStartup = true;    
+        CKEDITOR.config.disableNativeSpellChecker = false;
+        CKEDITOR.config.removePlugins = 'scayt,elementspath,save, maximize, resize,menubutton,contextmenu';    
+        CKEDITOR.config.width = '100%'; 
+        CKEDITOR.config.height = 400; 
+        CKEDITOR.config.toolbar = [
+        ['Undo', 'Redo'],
+        ['Bold', 'Italic','Underline','Strike' ],
+        ['Link','Image'],
+        ['JustifyLeft','JustifyCenter','JustifyRight'],
+        ['BulletedList', 'NumberedList', 'Indent', 'Outdent' ],
+        ['Format','Font', 'FontSize','TextColor','BGColor','Paste','PasteText','PasteFromWord']    
+        
+        ];
+        //CR-00107197: Enhanced rich text editor script ends
+        CKEDITOR.config.enterMode = CKEDITOR.ENTER_BR; //Changed to set single line spacing when pressed enter.
+    
+    </script>
+        
+</apex:page>

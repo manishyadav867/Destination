@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customSettingsType>List</customSettingsType>
+    <description>CR-00138663 : Custom Setting to store the default request contacts that should be inserted based on an escalation request for specified alert level.</description>
+    <enableFeeds>false</enableFeeds>
+    <fields>
+        <fullName>Request_Alert_Level__c</fullName>
+        <externalId>false</externalId>
+        <label>Request Alert Level</label>
+        <length>255</length>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Request_Contact_Email__c</fullName>
+        <externalId>false</externalId>
+        <label>Request Contact Email</label>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Email</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Request_Contact_Type__c</fullName>
+        <externalId>false</externalId>
+        <label>Request Contact Type</label>
+        <length>255</length>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <label>GSS Default Escalation Request Contacts</label>
+    <visibility>Protected</visibility>
+</CustomObject>

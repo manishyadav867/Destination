@@ -1,0 +1,1395 @@
+<!--
+Component name :  GSS_Agent_SR_Management
+
+Author  : Accenture
+Purpose : Page for SR Management Tab
+Date    : 6-April-2014 - GSS Agent Console Project
+CR-00102156  18-July-2014   Hotfix for UI Changes. Changed styles for multiple components.
+-->
+<!--CR-00096132  11-July-2014   UI Changes Present Throughout the Page.-->
+<!--CR-00102194 : 8-Aug-2014 - Added Available button-->
+<!--CR-00104728 : 9-Aug-2014 - Removed Availble button-->
+<!--CR-00107561 :12-Sep-2014 - Adding SR Links button-->
+<!--CR-00110761 :20-Oct-2014 - Removing switch. Adding x-close tab hiding code-->
+<!--CR-00109419 :20-Nov-2014 - Adding SR Team Related List-->
+<!--CR-00116268/CR-00122294 :23-Dec-2014 - GSS Ultra Changes for Jan-->
+<!--CR-00123420 : 13-Feb-2015   Default status and Substaus/Queue Search-->
+<!--CR-00132166 : 20-Apr-2015   Owner Hover for TSMs-->
+<!--CR-00134241 : 20-Jul-2015   Add Refresh on owner change-->
+<!--CR-00138253 :30-Mar-2016 -  EA number exposed details -->
+<!--Deepak Kumar  03-Feb-2016         JIRA:BB-13: Added Opco Documents tab in Ultra.-->
+<!--CR-00138773  07-jun-2016 added RPQ details in related list-->
+<!--CR-00138097 : 09-Jun-2016 - Ultra should have the ability to handle VCE Cases -->
+<!--Jyolsna     : 14-Jul-2016 - CR-00138560: Added Error Message for Sev1 PREM Transfer queue -->
+<!--CR-00140332 :4-august-2016 - added Entitlement Name in banner -->
+
+<apex:page id="pageid" standardcontroller="case" extensions="GSS_Agent_SR_Management_Controller" action="{!redirectSalesConsole}"  sidebar="false" showHeader="true">
+    
+    <apex:includeScript value="{!$Resource.Soap_Ajax_30_Connection}"/>
+    <apex:includeScript value="{!$Resource.Soap_Ajax_30_Apex}"/>
+    <apex:includeScript value="{!$Resource.Js_Function}"/>
+    <apex:includeScript value="{!$Resource.Support_Console_30_Integration}"/>
+    
+    
+    <!--CR-00116268 Using static resource-->
+    <apex:includeScript value="{!$Resource.jquery191}"/>
+    <!--<link rel="stylesheet" href="https://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
+    <script src="https://code.jquery.com/ui/1.10.2/jquery-ui.js"></script> -->
+    <script>
+    
+    
+    if(window.navigator.appName=='Microsoft Internet Explorer')
+    {
+        document.write('<style>select{width:208px !important; height:24px !important;margin:2px !important;}</style>');
+        
+    }
+    else{
+        
+        document.write('<style>select{width:205px !important; height:24px !important;margin:2px !important;}</style>');
+        
+    }
+    //CR-00122294: Hyperlink case numbers
+    function openCaseInPrimaryTab(caseId) {            
+        sforce.console.openPrimaryTab(null, '/'+caseId, true);
+    }
+            
+    </script>
+    
+    <style>
+    fontsize{
+        font-size:13px !important;
+    }
+    
+    .helpOrb {
+        background-image: url(/img/help/helpOrbs.gif);
+        background-position: 0 0;
+        width: 20px;
+        height: 15px;
+    }
+    
+    .helpText {
+        background-color: white !important;
+    } 
+    
+    </style>
+    
+    <style>
+     body { background-color: {!TabColor} !important; } 
+     div { background-color: {!TabColor} !important; } 
+     span { background-color: {!TabColor} !important; } 
+     table { background-color: {!TabColor} !important; } 
+     td { background-color: {!TabColor} !important; } 
+     tr { background-color: {!TabColor} !important; } 
+     th { background-color: {!TabColor} !important; } 
+     border { background-color: {!TabColor} !important; } 
+     
+     
+        
+    </style>
+    
+    <style type="text/css">
+    * { font-size: 12px !important; }
+    input{font-size: 13px !important;}
+    select{font-size: 13px !important;}
+    .btn{font-size:10px !important;}
+    h6{font-size:12px !important;}
+    td{font-size:12px !important;}    
+    </style>
+    <style>
+        span.dateFormat{display:none;}   
+
+    </style>
+    
+    <script type="text/javascript">
+    
+         
+    var check='{!checkRender}';
+    var id = '{!case.id}';
+    var result2='initialized';
+    
+    var count=1;
+    var tabName='{!case.CaseNumber}';
+    var previousOnload = window.onload;
+    var refreshCheck=false;
+
+   //var fstid;
+   //var fstno;
+   var primarytab_id;
+   var st1id;
+   var subtabarray;
+    var firstload='true';
+     
+    //var gfstid = function gfstid(result) {
+    //    fstid=result.id;
+        //alert('fstid '+result.id);    
+    //};
+    window.onload = function() { 
+   
+        if (previousOnload) {        
+
+           previousOnload();
+           //sforce.console.getFocusedSubtabId(gfstid);
+           sforce.console.getEnclosingPrimaryTabId(getID);         
+
+                      
+        }
+    }
+    
+     var getID= function getID(result1) { 
+            primarytab_id=result1.id         
+            sforce.console.getSubtabIds(primarytab_id,changeName1);
+            
+        };       
+    
+    var changeName1= function changeName1(result2) { 
+            subtabarray = result2.ids; 
+           if(subtabarray[2]!=null){
+                firstload='false';
+            }
+            
+            //for(var i=0;i<9;i++){
+            //    if(fstid==subtabarray[i]){                    
+            //        fstno=i;
+            //        //alert('focussed tab number: '+fstno);
+            //        break;
+            //    } 
+            //}            
+             
+            sforce.console.setTabTitle('{!srManagementTabName}',result2.ids[0]);
+            sforce.console.getEnclosingPrimaryTabId(setID);
+            
+            //For Inbound Notes.
+             var openInbound = '{!openInboundNotes}';
+             if(openInbound == 'true' && firstload == 'true')
+             {
+                 var caseid='{!cId}';
+                 var url = "/apex/GSS_Agent_Calloutbound_page?cId="+caseid+"&notes=none&cout=false";
+                 window.open(url,'InboundPopup','height=700,width=1100,left=300,top=150,resizable=yes,scrollbars=yes,toolbar=no,status=no');
+                 
+             }
+            
+                               
+        };
+        
+    var setID= function setID(result3) {
+       sforce.console.setTabTitle(tabName,result3.id);  
+       if(firstload=='true')
+           openSubtab(); 
+       };  
+
+    var getprimary= function getprimary(result4) { 
+       if(firstload=='true'){
+        if('{!case.First_Response_Date__c}'!=''){
+            
+            sforce.console.focusSubtabByNameAndPrimaryTabId('probdef', result4.id);   
+        }
+        else{
+            
+            sforce.console.focusSubtabByNameAndPrimaryTabId('content', result4.id);
+
+        } 
+        }
+        //else{
+        //sforce.console.getSubtabIds(result4.id , newptab);
+        // }
+             
+   };
+   
+    //var newptab = function newptab(result) {
+    //        
+    //         sforce.console.focusSubtabById(result.ids[fstno]);         
+    //  };
+      
+             
+        
+    /*The callback function that openSubtab will call once its got the ID for its primary tab*/
+
+    var callOpenSubtab=function callOpenSubtab(result) {
+       
+        count++;
+        
+        if(count==2)
+        {
+           
+            result2 =result;
+           
+            if({!contactEntitlementTab})
+                {GSSContactEntitlementpage(result2);}
+            else
+                {callOpenSubtab(result2);}
+        }
+        else if(count==3)
+        {
+            if({!problemDefinitionTab})
+                {openGSSProblemDefination(result2);}
+            else
+                {callOpenSubtab(result2);}
+        }
+        else if(count==4)
+        { 
+            if({!actiontTab})
+                {GSSAction(result2);}
+            else
+                {callOpenSubtab(result2);}
+        } 
+        else if(count==5)
+        {
+            if({!resolutionInfoTab})
+                {GSSResolutionInformationpage(result2);}
+            else
+                {callOpenSubtab(result2);}
+        }
+        else if(count==7)
+        {
+            if({!srSummaryTab})
+                {SRSummaryPage(result2);}
+            else
+                {callOpenSubtab(result2);}
+        }   
+        else if(count==6)
+        {
+            if({!additionalInfoTab})
+                {GSS_AdditionalInformationPage(result2);}
+            else
+                {callOpenSubtab(result2);}
+        }
+        else if(count==8)
+        {
+            if({!additionalTab1})
+                {GSS_AdditionalTab1Page(result2);}
+            else
+                {callOpenSubtab(result2);}
+        }  
+<!--- Changes Start: Tab added for BB-8 Project: user story JIRA:BB-13 -->  
+        else if(count==9)
+        {
+            
+            if({!opcoDocumentsTab})
+                {GSS_OpcoDocument(result2);}
+            else
+                {callOpenSubtab(result2);}
+                
+                
+        } 
+<!--- Changes End: Tab added for BB-8 Project: user story JIRA:BB-13 -->            
+        else if(count==10)
+        {
+            
+            if({!additionalTab2})
+                {GSS_AdditionalTab2Page(result2);}
+            else
+                {callOpenSubtab(result2);}
+                //CR-00110761: Removing switch. Adding x-close tab hiding code
+                //sforce.console.getEnclosingPrimaryTabId(getprimary);
+                removextabs();
+        } 
+        <!-- Start - 9-Jun-2016 - Jyolsna - CR-00138097 - added VCE Info tab  -->  
+        else if(count==11)
+        {
+            
+            if({!vceInfoTab})
+                {GSS_vceInfoTab(result2);}
+            else
+                {callOpenSubtab(result2);}
+                
+                
+        } 
+<!--- End - 9-Jun-2016 - Jyolsna - CR-00138097 - added VCE Info tab -->  
+    <!-- removextabs() added for BB-08 Project -->
+        removextabs();
+ 
+    };
+        
+    function openSubtab() {
+   
+        sforce.console.getEnclosingPrimaryTabId(callOpenSubtab);
+        
+    }
+        
+    var openGSSProblemDefination=function openGSSProblemDefination(result)
+    {
+        //alert("entered problem definition!!"+result.id+result2.id);
+        sforce.console.openSubtab(result2.id, 
+        '/apex/GSS_Agent_Problem_Definition?id='+id, false , '{!problemDefinitionTabName}',null,callOpenSubtab,'probdef');
+        //alert('exit prb def');
+    };
+    
+    var GSSAction=function GSSAction(result)
+    {
+        //alert("inside GSS action"+result.id+result2.id);
+        sforce.console.openSubtab(result2.id, 
+        '/apex/GSS_Agent_Action?id='+id, false , '{!actiontTabName}',null,callOpenSubtab,'action');
+    };
+    
+    var GSSResolutionInformationpage=function GSSResolutionInformationpage(result)
+    {
+        //alert("inside GSS Resolution"+result.id+result2.id);
+        sforce.console.openSubtab(result2.id, 
+        '/apex/GSS_Agent_Resolution?id='+id, false , '{!resolutionInfoTabName}',null,callOpenSubtab,'resInfo');
+    };
+    
+    var SRSummaryPage=function SRSummaryPage(result)
+    {
+        //alert("inside SRSummary page"+result.id+result2.id);
+        sforce.console.openSubtab(result2.id, 
+        '/apex/GSS_Agent_SR_Summary?id='+id, false , '{!srSummaryTabName}',null,callOpenSubtab,'srsummary');
+
+        
+    };
+    
+    var GSS_AdditionalInformationPage=function GSS_AdditionalInformationPage(result)
+    {
+        //alert("inside GSS addiional inf page"+result.id+result2.id);
+        sforce.console.openSubtab(result2.id, 
+        '/apex/GSS_Agent_Additional_Info?id='+id, false , '{!additionalInfoTabName}',null,callOpenSubtab,'addInfo');
+
+         
+        
+    };
+    
+    var GSSContactEntitlementpage=function GSSContactEntitlementpage(result)
+    {
+        //alert("inside GSS Entitlement"+result.id+result2.id);
+        sforce.console.openSubtab(result2.id, 
+        '/apex/GSS_Agent_Contact_Entitlement?id='+id, false ,'{!contactEntitlementTabName}',null,callOpenSubtab,'content');
+    };
+    
+    var GSS_AdditionalTab1Page=function GSS_AdditionalTab1Page(result)
+    {
+        sforce.console.openSubtab(result2.id, 
+        '/apex/GSS_Agent_Additional_Tab1?id='+id, false , '{!additionalTab1Name}',null,callOpenSubtab,'addtab1');
+        
+    };
+    
+    var GSS_AdditionalTab2Page=function GSS_AdditionalTab2Page(result)
+    {
+        <!-- BB-8 Project- changed the name of page -->
+        sforce.console.openSubtab(result2.id, 
+        '/apex/relatedCases?id='+id, false , '{!additionalTab2Name}',null,callOpenSubtab,'addtab2');
+        
+    };
+        <!-- BB-8 Project- changes start -->
+    var GSS_OpcoDocument=function GSS_OpcoDocument(result)
+    {
+        
+        <!-- BB-8 Project- changed the name of page -->
+        sforce.console.openSubtab(result2.id, 
+        '/apex/GSS_Agent_Opco_Document_Tab?id='+id, false , '{!opcoDocumentsTabName}',null,callOpenSubtab,'OpcoDocument');
+        
+    };
+     <!-- BB-8 Project- changes end -->
+<!-- Start - 9-Jun-2016 - Jyolsna - CR-00138097 - added VCE Info tab -->
+    var GSS_vceInfoTab=function GSS_vceInfoTab(result)
+    {
+        sforce.console.openSubtab(result2.id, 
+        '/apex/GSS_Agent_VCE_Info_Tab?id='+id, false , '{!vceInfoTabName}',null,callOpenSubtab,'vceInfo');
+        
+    };
+<!-- End - 9-Jun-2016 - Jyolsna - CR-00138097 - added VCE Info tab-->
+    //CR-00110761: Removing switch. Adding x-close tab hiding code
+    //Script for Removing Close icon from tabs
+    function removextabs(){
+        var elements = parent.document.getElementsByTagName("li");
+        //alert('E :'+elements.length);
+        for (var i = 0; i < elements.length; i++) {
+           if(elements[i].id.indexOf('__scc-st') > -1) {
+               //console.log("found and fixing tab " + elements[i].id);
+               elements[i].className = "";
+           }
+        }
+    }
+    //Script for Removing Close icon from tabs 
+     
+
+    </script>
+          
+    <apex:form id="formid"> 
+                       
+        <apex:actionFunction name="savethecase" action="{!savecase}" reRender="messages" status="counterStatus"/>
+        <apex:actionFunction name="savethecase_ref" action="{!savecase}" reRender="messages" status="counterStatus" oncomplete="refresInfo()"/>
+        <apex:actionFunction name="savethecase_ref2" action="{!savecase}" reRender="messages" status="counterStatus" oncomplete="refresInfo2('{!ErrorMessage}')"/><!--CR-00134241--><!--CR-00138560: passed error message -->
+        <apex:pagemessages id="messages"></apex:pagemessages>
+
+        <apex:pageBlock title="" mode="edit" id="pbid">
+        <script>
+            $('.pbHeader').remove();
+        </script>   
+
+        <Apex:outputPanel id="TabelPanel">
+            
+        <table align="center" width="90%">
+        <tr>                
+                
+                <td style="color:#4A4A56 !important; font-weight:bold; font-size: 11px !important;" align="left"> 
+                <apex:image url="{!$Resource.WarningSign}" height="14px" width="14px" rendered="{!case.Closed_Days__c}"/>
+                <apex:outputLabel value="Case is Closed >21 Days" rendered="{!case.Closed_Days__c}"/> 
+                </td>
+                
+         </tr>
+         
+         <tr>
+            
+               <td align="center" colspan="2">
+               <c:GSS_Agent_SRCommentsButton caseid="{!case.id}" customLabel="{!SRCommentButtonLabel}" Type="Internal Note SR Management" rendered="{!isSRCommentButtonVisible}"/>             
+               
+                
+                
+                <c:GSS_Agent_SendEmailButton caseid="{!case.id}" customLabel="{!SendEmailButtonLabel}" SourceTab="SR Management Email" email="{!case.Technical_Contact_Email__c}" rendered="{!isSendEmailButtonVisible}"/> 
+                
+                
+                
+                <c:GSS_Agent_CallOutboundButton caseid="{!case.id}" customLabel="{!CallOutboundButtonLabel}" phone="{!case.Technical_Contact_Phone__c}" casenumber="{!case.casenumber}" type="Management" rendered="{!isCallOutboundButtonVisible}"/>  
+                
+                
+                
+                <c:GSS_Agent_Reassign caseid="{!case.id}" customLabel="{!ReassignButtonLabel}" rendered="{!isReassignButtonVisible}"/> 
+                
+                
+                
+                <c:GSS_Agent_Clone_SR_Button caseid="{!case.id}" customLabel="{!CloneButtonLabel}" rendered="{!isCloneButtonVisible}"/>
+                
+                
+                
+                <c:GSS_Agent_Webex_Button caseid="{!case.id}" customLabel="{!WebexButtonLabel}" casenumber="{!case.casenumber}" rendered="{!isWebexButtonVisible}"/> 
+                
+                
+                
+                <c:GSS_Agent_Public_Notes caseid="{!case.id}" customLabel="{!PublicCommentButtonLabel}" rendered="{!isPublicCommentButtonVisible}"/>
+
+                
+                <c:GSS_Agent_Search_iKB casenumber="{!case.casenumber}" customLabel="{!KBButtonLabel}" KBString="{!Case.KB_SearchString__c}" rendered="{!isKBButtonVisible}"/>
+                
+                
+                
+                <c:GSS_Agent_Script_Server_Attachments casenumber="{!case.casenumber}" customLabel="{!ScriptsButtonLabel}" rendered="{!isScriptsButtonVisible}"/>                
+                
+                
+                
+                <c:GSS_Agent_Bugzilla customLabel="{!BugzillaButtonLabel}" rendered="{!isBugzillaButtonVisible}"/>                   
+                
+                
+                
+                <c:GSS_Agent_Upload_Attachments caseid="{!case.id}" customLabel="{!AttachmentButtonLabel}" casenumber="{!case.casenumber}" rendered="{!isAttachmentButtonVisible}"/>                 
+                
+                                
+                
+                <c:GSS_Agent_LogACallButton caseid="{!case.id}" customLabel="{!LogACallButtonLabel}" rendered="{!isLogACallButtonVisible}"/> 
+                
+                
+                
+                <c:GSS_Agent_AddSRTeamMembers caseid="{!case.id}" customLabel="{!SRTeamButtonLabel}" rendered="{!isSRTeamButtonVisible}"/>
+                <c:GSS_Agent_URL_Button caseid="{!case.id}" customLabel="{!SRLinkLabel}" rendered="{!isSRLinkVisible}"/><!--CR-00107561 added button-->
+                
+                
+                <c:GSS_Agent_AuditHistory caseid="{!case.id}" customLabel="{!HistoryLabel}" rendered="{!isHistoryVisible}"/><!--CR-00122294 added audit history button-->
+
+                <!--<c:GSS_Agent_AvailableButton /><!--CR-00102194 & CR-00104728  Removing button-->
+                <!--CR-00132166 : Owner Hover details starts-->
+                <input type="button" id="{!OwnerId}" value="Owner Information" class="btn" style="{!IF(($Profile.Name=='GSS Mgmt' || $Profile.Name=='GSS Mgmt/REM' || $Profile.Name=='System Administrator'),'display:inline','display:none')}" onblur="LookupHoverDetail.getHover('{!OwnerId}').hide();" onfocus="LookupHoverDetail.getHover('{!OwnerId}', '/{!OwnerId}/m?retURL=%2F{!OwnerId}&isAjaxRequest=1').show();" onmouseout="LookupHoverDetail.getHover('{!OwnerId}').hide();" onmouseover="LookupHoverDetail.getHover('{!OwnerId}', '/{!OwnerId}/m?retURL=%2F{!OwnerId}&isAjaxRequest=1').show();" />
+                
+               <!--CR-00132166 : Owner Hover details ends--> 
+                
+                </td>
+                </tr>
+             
+                <tr>
+                <td align="left" height="20px">
+                <apex:outputPanel id="counterid" layout="block" >
+                        <apex:actionStatus startText=" Save is in progress..." stoptext="" id="counterStatus" startStyle="color:red;font-weight:bold;"/>  <!--CR-00107561  updated Saving style-->
+                </apex:outputPanel>
+                <!--CR-00123420 Adding status for Loading Queues/Users -->
+                <apex:outputPanel id="counterid2" layout="block" >
+                        <apex:actionStatus startText=" Loading..." stoptext="" id="QueueStatus" startStyle="color:red;font-weight:bold;"/>
+                </apex:outputPanel>
+                
+                </td>
+                
+        
+                <td align="right">
+                
+                <apex:outputPanel rendered="{!showimage}" style="padding-left:700px">
+                    <apex:image url="{!$Resource.MailAlert}"/>
+                </apex:outputPanel> 
+                </td>
+                </tr>   
+
+              
+         
+         <!--Button ends-->
+        </table>
+            
+            
+          
+          
+             
+         
+         
+           
+         <table width="90%" align="center">
+         <!--Button start-->
+         
+         
+        
+        
+        
+         
+         
+         
+       
+         <tr>
+         <td colspan="2">
+         <c:GSS_Agent_SR_Technical_Contact techCon="{!case.Technical_Contact_Name__c}" CaseNumber="{!case.casenumber}" Account="{!case.Account.Name}" AccountId="{!case.AccountId}" Synopsis="{!case.TSE_Synopsis__c}" EAName="{!case.EA_Name__c}" EANumber="{!case.EA_Number__c}" EntitleMentName="{!case.Entitlement.Name}"/> <!--CR-00122294: Account hyperlink--><!-- CR-00138253--><!--CR-00140332-->
+         </td>
+        </tr>
+        <tr>
+        <td colspan="2">
+                 <br/><br/>
+        
+        </td>
+        </tr>
+         
+         <tr>
+         
+         <td>
+         
+            <table align="left" cellspacing="0" cellpadding="0" style="margin-left:-1px">
+            
+            <apex:variable var="count" value="{!1}"/>
+            <apex:repeat id="repeat1" value="{!wrapperList}" var="f">
+                <tr>
+                
+                <th class="labelCol fontsize" valign="top"> 
+                       
+                       <apex:outputLabel value="{!f.label}"/>
+                       
+                
+                <span class="helpButton" id="example{!count}-title-_help" style="{!if(f.helpText!='','display:inline','display:none')}">
+                    <img src="/s.gif" class="helpOrb" style="{!if(f.helpText!='','display:inline','display:none')}"/>
+
+                    <script type="text/javascript">      
+                        sfdcPage.setHelp('example{!count}-title', '{!f.helpText}');       
+                    </script>
+                </span>
+                
+                <apex:variable var="count" value="{!count + 1}"/>
+                </th>
+                
+
+                <td class="data2Col" style="{!if(f.readOnly,'display:none','display:inline-block')}" > 
+               <!--CR-00134241 added parameter to focussave function--> 
+               <apex:inputField value="{!Case[f.fieldName]}" styleClass="{!f.fieldName}" required="{!f.required}" style="{!f.style};" onchange="{!IF((f.fieldName=='Sub_Status__c'), 'focusSave(this.value,true,false)',IF((f.fieldName=='Status'), 'defaultSubStatus();focusSave(this.value,true,false)', 'focusSave(this.value,false,false)' ))}" id="ProdId2"  onblur="{!IF((f.fieldName=='ProductId'), 'focusSave(this.value,true,false)', IF(( f.fieldName=='OwnerId'), 'focusSave(this.value,true,true)', '' ))}"><!--CR-00107561 - Sub status change should cause resolution tab refresh--> <!--CR-00122294 added To open parent case in new tab-->
+                   
+                    <c:Autocomplete objectname="Product2" input_id="{!$Component.ProdId2}" numberOfResultsToDisplay="15" rendered="{!IF(f.fieldName=='ProductId',true,false)}"/>
+                    <c:Autocomplete objectname="User" input_id="{!$Component.ProdId2}" numberOfResultsToDisplay="15" rendered="{!IF(f.fieldName=='OwnerId' && !searchQueue,true,false)}"/>
+                    <c:Autocomplete objectname="Group" input_id="{!$Component.ProdId2}" numberOfResultsToDisplay="15" rendered="{!IF(f.fieldName=='OwnerId' && searchQueue,true,false)}"/> <!--CR-00123420 Added for Queue Search-->
+                     
+              </apex:inputField>
+             
+                           
+                   
+                 </td>
+
+                 
+                <td class="data2Col" style="{!if(f.readOnly,'display:inline-block','display:none')}">                 
+                    <!--<apex:outputField value="{!Case[f.fieldName]}" />                   -->
+                    <apex:inputText value=" {!Case[f.fieldName]}" rendered="{!IF(f.readOnly==true && case[f.fieldname]!=null,true,false)}" disabled="true" style="{!f.style}" />                   
+                
+                
+                
+                    <apex:inputText value="{!Case[f.fieldName]}" rendered="{!IF(f.readOnly==true && case[f.fieldname]==null,true,false)}" disabled="true" style="{!f.style}" />
+                       
+                 </td>
+                 <td style="{!if(f.fieldName=='OwnerId','display:inline-block;vertical-align: middle;','display:none')}">
+                     <!--CR-00123420 Added for Queue Search Starts-->
+                      <apex:inputCheckbox value="{!searchQueue}" title="Check to assign SR to Queue" rendered="{!IF(f.fieldName=='OwnerId',true,false)}">   
+                         <apex:actionsupport event="onchange" rerender="TabelPanel" oncomplete="hideOwnerQueueUserField()" status="QueueStatus"/>
+                      </apex:inputCheckbox> Queue Assign
+                      <!--CR-00123420 Added for Queue Search Ends-->   
+                 </td>
+                 
+                 </tr>
+                <tr>
+                    <td colspan="2">
+                        <br/>
+                    </td>
+                    
+                </tr>
+                 
+                             
+               
+              
+               </apex:repeat>
+               
+               
+               
+                </table>
+                
+                </td>
+                <td valign="top">
+
+                
+                <table align="right" style="margin-right:-0.9%" cellspacing="0" cellpadding="0"> 
+
+                <apex:variable var="count" value="{!50}"/>
+                <apex:repeat id="repeat2" value="{!wrapperListSecond}" var="f">
+              
+                <tr>
+                <th class="labelCol fontsize" valign="top"> 
+                            
+                <apex:outputLabel value="{!f.label}" />
+                
+                <span class="helpButton" id="example{!count}-title-_help" style="{!if(f.helpText!='','display:inline','display:none')}">
+                <img src="/s.gif" class="helpOrb" style="{!if(f.helpText!='','display:inline','display:none')}"/>
+
+                <script type="text/javascript">
+                    sfdcPage.setHelp('example{!count}-title', '{!f.helpText}');
+                </script>
+                </span>
+                <apex:variable var="count" value="{!count + 1}"/>
+                </th>
+                
+                
+
+                <td class="data2Col" style="{!if(f.readOnly,'display:none','display:inline-block')}"> 
+                <!--CR-00134241 added parameter to focussave function-->
+                <apex:inputField value="{!Case[f.fieldName]}" styleClass="{!f.fieldName}" required="{!f.required}" style="{!f.style};" onclick="{!IF(f.fieldName=='ParentId','openParentCase()','')}" onchange="{!IF((f.fieldName=='Sub_Status__c'), 'focusSave(this.value,true,false)',IF((f.fieldName=='Status'), 'defaultSubStatus();focusSave(this.value,true,false)', 'focusSave(this.value,false,false)' ))}" id="ProdId2" onblur="{!IF((f.fieldName=='ProductId'), 'focusSave(this.value,true,false)', IF((f.fieldName=='OwnerId'), 'focusSave(this.value,true,true)','' ))}"> <!--CR-00107561 - Sub status change should cause resolution tab refresh--><!--CR-00122294 added To open parent case in new tab-->
+                    
+                    <c:Autocomplete objectname="Product2" input_id="{!$Component.ProdId2}" numberOfResultsToDisplay="15" rendered="{!IF(f.fieldName=='ProductId',true,false)}"/>
+                    <c:Autocomplete objectname="User" input_id="{!$Component.ProdId2}" numberOfResultsToDisplay="15" rendered="{!IF(f.fieldName=='OwnerId' && !searchQueue,true,false)}"/>
+                    <c:Autocomplete objectname="Group" input_id="{!$Component.ProdId2}" numberOfResultsToDisplay="15" rendered="{!IF(f.fieldName=='OwnerId' && searchQueue,true,false)}"/> <!--CR-00123420 Added for Queue Search-->
+                    
+                </apex:inputField>
+                
+                 </td>
+                 
+                 <td class="data2Col" style="{!if(f.readOnly,'display:inline-block','display:none')}"> 
+                
+                    <!--<apex:outputField value="{!Case[f.fieldName]}" />-->
+                    <apex:inputText value=" {!Case[f.fieldName]}" rendered="{!IF(f.readOnly==true && case[f.fieldname]!=null,true,false)}" disabled="true" style="{!f.style}" />                   
+                
+                
+                
+                    <apex:inputText value="{!Case[f.fieldName]}" rendered="{!IF(f.readOnly==true && case[f.fieldname]==null,true,false)}" disabled="true" style="{!f.style}" />
+                    
+                 </td>
+                 <td style="{!if(f.fieldName=='OwnerId','display:inline-block;vertical-align: middle;','display:none')}">
+                     <!--CR-00123420 Added for Queue Search Starts-->
+                      <apex:inputCheckbox value="{!searchQueue}" title="Check to assign SR to Queue" rendered="{!IF(f.fieldName=='OwnerId',true,false)}">   
+                         <apex:actionsupport event="onchange" rerender="TabelPanel" oncomplete="hideOwnerQueueUserField()" status="QueueStatus"/>
+                      </apex:inputCheckbox> Queue Assign
+                      <!--CR-00123420 Added for Queue Search Ends-->   
+                 </td>
+                 
+                 </tr>
+
+                <tr>
+                    <td colspan="2">
+                        <br/>
+                    </td>
+                    
+                </tr>                
+                 
+               
+              
+                </apex:repeat>
+                            
+                </table>
+                
+                </td>
+                </tr><!-- BB-8 start changes -->
+                <tr><td width="100%" colspan="2">
+                
+                </td></tr><!-- end BB-8 changes -->
+                </table>  
+            </Apex:outputPanel> 
+            
+        <!--<apex:outputLabel value="Case is Closed <21 Days" rendered="{!case.Closed_Days__c}"/>-->    
+        </apex:pageBlock>
+    <!-- BB-8 Project changes start -->
+        <style>
+        .headerRow .GreenTitle {
+            color: green !important; 
+        }
+        .headerRow .RedTitle {
+            color: red !important; 
+        }
+        
+    </style>
+        <apex:pageBlock title="Service Level Agreements-Commitment Monitoring" rendered="{!NOT(checkForPremiumSupport)}" >
+                <apex:pageblocksection columns="2">
+                    <apex:outputText value=""/>
+                    <apex:outputText value="Last Refresh Time[hh:mm:ss]: {!LastRefreshTimeHMS}" id="timeCounterId" style="font-weight: bold;color:blue;float:right;"/>
+                </apex:pageblocksection>
+                <apex:pageBlockTable value="{!RecordCaseSLA}" var="caseSLARec" width="100%" cellpadding="0">
+                        <apex:column headerValue="Commit SLA's" HeaderClass="GreenTitle" >
+                            <c:GSS_Agent_SendEmailButton caseid="{!case.id}" customLabel="Email" SourceTab="SR Management Email" email="{!case.Technical_Contact_Email__c}" rendered="{!IF(isSendEmailButtonVisible && caseSLARec.milestoneName == 'First Response',true,false)}" /> 
+                            <c:GSS_Agent_LogACallButton caseid="{!case.id}" customLabel="Call" rendered="{!if(caseSLARec.milestoneName == 'First Response',true,false)}"/> 
+                            <!-- <c:GSS_Agent_Webex_Button caseid="{!case.id}" customLabel="Webex" casenumber="{!case.casenumber}" rendered="{!if(caseSLARec.milestoneName == 'First Response',true,false)}"/>    -->
+                            
+                            <apex:commandButton value="Service Restoration" onclick="openServiceRestorationEmail(); return false;" reRender="none" rendered="{!IF(isServiceRestorationButtonVisible && caseSLARec.milestoneName == 'Service Restoration',true,false)}"/>
+      
+                            <apex:commandButton value="RCA due" onclick="openRCAEmail(); return false;" reRender="none"  rendered="{!IF(isRCAButtonVisible && caseSLARec.milestoneName == 'RCA Due',true,false)}"/>
+                            
+                            <apex:commandButton value="Final Correction" onclick="openFinalCorrectionEmail(); return false;" reRender="none" rendered="{!IF(isFinalCorrectionButtonVisible && caseSLARec.milestoneName == 'Final Correction',true,false)}"/>
+                        </apex:column>
+                         <apex:column headerValue="Pause" HeaderClass="RedTitle" >
+                            <apex:commandButton value="Workaround" onclick="checkWorkAroundMail(); return false;" reRender="none" rendered="{!IF(isServiceRestorationButtonVisible && caseSLARec.milestoneName == 'Service Restoration',true,false)}"/>
+                        </apex:column>
+                        <apex:column headerValue="Milestone">
+                            <apex:outputText value=" {!caseSLARec.milestoneName}" />
+                        </apex:column>
+                        <apex:column headerValue="Target Date">
+                            <apex:outputText value=" {!caseSLARec.dueVal}" />
+                        </apex:column>
+                        <apex:column headerValue="Completion Date">
+                            <apex:outputText value=" {!caseSLARec.actualVal}" />
+                        </apex:column>
+                        <apex:column headerValue="Time Remaining (Min:Sec) ">
+                            <apex:outputText value="{!caseSLARec.timeRemaining}" />
+                        </apex:column>
+                        <apex:column headerValue="Met">
+                           <!-- <apex:outputText value="{!caseSLARec.metField}" />-->
+                           
+                           <apex:image url="{!$Resource.GSSMetFieldNo}" rendered="{!IF(caseSLARec.metField == 'No'&& caseSLARec.timeRemaining == '00:00',true,false)}" />
+                            <apex:image url="{!$Resource.GSSMetFieldYes}" rendered="{!IF(caseSLARec.metField == 'Yes',true,false)}" />
+                        </apex:column>
+         
+          </apex:pageblocktable>       
+                
+        </apex:pageBlock> 
+        <!-- BB-8 Project changes end -->      
+    
+    <!-- Start CR-00116268 added PR related list-->
+        <apex:pageBlock title="Related PR" rendered="{!PRlist.size > 0}">
+            <apex:pageBlockTable value="{!PRlist}" var="val" rendered="{!PRlist.size > 0}" > 
+            <apex:column headerValue="PR Numbers" style="width:6%">
+                <apex:commandLink onclick="window.open('{!BugsURL}'+'{!val.GSS_BugSFDCID__r.GSS_Bug_ID__c}')" value="{!val.GSS_BugSFDCID__r.GSS_Bug_ID__c}"/>
+            </apex:column>
+            <!-- BB-8 Project added few columns -->
+            <apex:column headerValue="Bug Status" value="{!val.GSS_Bug_Status__c}" style="width:6%"/>
+            <!-- <apex:column headerValue="Bug Summary" value="{!val.GSS_BugSFDCID__r.Bug_Summary__c}" style="width:10%"/> -->
+            <apex:column headerValue="Bug Summary" width="16%">
+            <apex:outputText escape="false" value="{!IF(LEN(val.GSS_BugSFDCID__r.Bug_Summary__c)>100,left(val.GSS_BugSFDCID__r.Bug_Summary__c,100)+more,val.GSS_BugSFDCID__r.Bug_Summary__c)}" title="{!val.GSS_BugSFDCID__r.Bug_Summary__c}" style="width:100%" />
+            </apex:column>
+            <!-- <apex:column headerValue=" #" value="{!val.GSS_BugSFDCID__r.Bug_Update_Number__c}"  style="width:3%"/>  -->
+            <apex:column headerValue="Updated By" value="{!val.GSS_BugSFDCID__r.Bug_Updated_By__c}" style="width:6%"/>
+            <apex:column headerValue="Date" value=" {!val.GSS_BugSFDCID__r.Bug_Updated_On__c}" style="width:4%" />
+            <apex:column headerValue="Text" width="40%">
+            <apex:outputText escape="false" value="{!IF(LEN(val.GSS_BugSFDCID__r.Bug_Update__c)>200,left(val.GSS_BugSFDCID__r.Bug_Update__c,200)+more,val.GSS_BugSFDCID__r.Bug_Update__c)}" title="{!val.GSS_BugSFDCID__r.Bug_Update__c}" style="width:100%" />
+            </apex:column>
+            <apex:column value="{!val.GSS_Primary_Bug__c}" style="width:6%" />
+            <apex:column headerValue="Linked Date" style="width:6%">
+            <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+            <apex:param value="{!val.CreatedDate}" /> 
+            </apex:outputText> 
+           </apex:column> 
+       <!-- BB-8 Project added few columns end-->            
+        </apex:pageBlockTable> 
+        
+        </apex:pageBlock>   
+    <!-- End CR-00116268 added PR related list-->   
+     
+        <apex:pageBlock title="Related SR" >
+            <!--<apex:outputpanel style="overflow:hidden;height:163px;" layout="block"> -->
+            <apex:pageBlockTable value="{!RecordCases}" var="val" rendered="{!RecordCases.size > 0}"> 
+
+            <apex:column headerValue="Case Number" width="8%"> <!--CR-00122294: Hyperlink case numbers-->
+                 <a href="#" onClick="openCaseInPrimaryTab('{!val.id}');return false">{!val.CaseNumber}</a>
+            </apex:column>
+            <apex:column headerValue="Owner" value="{!val.owner.Name}" width="12%"/>
+            <apex:column headerValue="TSE Synopsis" value="{!val.TSE_Synopsis__c}" width="68%"/>
+            <apex:column headerValue="Priority" value="{!val.Priority}" width="6%"/>
+            <apex:column headerValue="Status" value="{!val.Status}" width="6%"/>
+
+            </apex:pageBlockTable>
+            <apex:outputText rendered="{!RecordCases.size = 0}" value="No records to display"/>
+            <!--</apex:outputpanel>-->
+        </apex:pageBlock>
+        
+    <!--CR-00109419 Adding SR Team Related List-->
+        <apex:pageBlock title="SR Team" id="SRTeamBlock" rendered="true">
+            <apex:pageBlockTable Id="PBTID" value="{!Detail}" var="t" rendered = "{!Detail.size > 0}">
+                <apex:column headerValue=" Action" >
+                <apex:commandlink action="{!RemoveTM}" rerender="SRTeamBlock,messages">
+                Remove
+                <apex:param name="RecIDeletedd" value="{!t.RecId}" assignTo="{!RecIDeletedd}"/>
+                <apex:param name="PreDefinedCTDelete" value="{!t.predefinedcaseteamid}" assignTo="{!PreDefinedCTDelete}"/>
+                </apex:commandlink>
+                </apex:column>
+                <apex:column headerValue=" Team Member" >                
+                <apex:commandLink onclick="window.open('/{!t.predefinedcaseteamid}'); return false" value="{!t.MemberName}" rendered="{!t.ispredefinedcaseteam}"/>
+                <apex:outputText value="{!t.MemberName}" rendered="{!!t.ispredefinedcaseteam}"/>                                          
+                </apex:column>
+                <apex:column headerValue="Member Role" >
+                <apex:outputText value="{!t.TeamMemberRole}" />                                          
+                </apex:column>
+                <apex:column headerValue="Case Access">
+                <apex:outputText value="{!t.CaseAccess}" />                                          
+                </apex:column>
+                <apex:column headerValue="Visible in Customer Portal">
+                <apex:inputCheckbox value="{!t.VisibleinCustomerPortal}" disabled="true"/>                                                                       
+                </apex:column>
+                <apex:column headerValue="Modified By" >
+                <apex:outputText value="{!t.LastModifiedName}" />  
+                </apex:column>
+            </apex:pageBlockTable>
+            <apex:outputText rendered="{!Detail.size = 0}" value="No records to display"/>
+        </apex:pageBlock>
+        <!-----------------------------------------------------------------------------CR-00138773--starts------------------------------------------------>
+        <apex:pageBlock title="RPQ Details" id="RPQ" rendered="true">
+            <apex:pageBlockTable Id="PBTID" value="{!rpqLists}" var="rpq" rendered = "{!rpqLists.size > 0}">
+                <apex:column headerValue=" RPQ ID" >
+                 <apex:commandLink onclick="openRPQInSubtab('{!rpq.ID}','{!rpq.Name}'); return false" value="{!rpq.Name}"/>                
+                </apex:column>
+                <apex:column headerValue=" RPQ Link" >   
+                 <apex:outputLink value="{!rpq.RPQ_Link__c}" target="_blank">{!rpq.RPQ_Link__c}</apex:outputLink>
+                </apex:column>
+                <apex:column headerValue="Description" >
+                {!rpq.Description__c}
+                 </apex:column>
+                <apex:column headerValue="Status">
+                {!rpq.Status__c}                                          
+                </apex:column>
+                <apex:column headerValue="Start Date">
+                {!rpq.Start_Date__c}
+                </apex:column>
+                <apex:column headerValue="End Date" >
+                {!rpq.End_Date__c}
+                </apex:column>
+                <apex:column headerValue="EA Number" >
+                {!rpq.EA_Number__c}  
+                </apex:column>
+            </apex:pageBlockTable>
+            <apex:outputText rendered="{!rpqLists.size = 0}" value="No records to display"/>
+        </apex:pageBlock>
+        
+    </apex:form>
+
+    <script>
+     var cpt1;
+      function setFocusOnLoad() {getCurrentTab();}
+       function getCurrentTab() {
+            sforce.console.getEnclosingPrimaryTabId(currentPrimaryTab);
+        }
+        
+        var currentPrimaryTab= function currentPrimaryTab(result) {
+            cpt1 = result.id;
+        };
+        //CR-00123420 function to open requests in new tab
+        function openRPQInSubtab(rid,rName){
+             sforce.console.openSubtab(cpt1,'/'+rid,true,rName,null,rid);
+        }
+ <!-------------------------------------------------------------------------------CR-00138773--Ends------------------------------------------------>
+      //function setFocusOnLoad() {}
+      //CR-00122294 added To open parent case in new tab
+      function openParentCase(){
+          if('{!case.ParentId}'!=null && '{!case.ParentId}'!=''){
+              openCaseInPrimaryTab('{!case.ParentId}');
+          }
+      }
+      
+      var x=document.getElementsByTagName("select");
+      for(i=0;i<x.length;i++){
+          if(x[i].title == 'Search scope'){
+              x[i].style.display="none";
+          }
+      }
+      
+        var keylistener1 = function (result) {
+            sforce.console.getFocusedPrimaryTabId(fetchid1);                     
+        };       
+        var keylistener2 = function (result) {
+           sforce.console.getFocusedPrimaryTabId(fetchid2);                      
+        };
+        var keylistener3 = function (result) {
+           sforce.console.getFocusedPrimaryTabId(fetchid3);                       
+        };
+        var keylistener4 = function (result) {
+           sforce.console.getFocusedPrimaryTabId(fetchid4);                       
+        };
+        var keylistener5 = function (result) {
+           sforce.console.getFocusedPrimaryTabId(fetchid5);                      
+        };
+        var keylistener6 = function (result) {
+           sforce.console.getFocusedPrimaryTabId(fetchid6);                       
+        };
+        var keylistener7 = function (result) {
+           sforce.console.getFocusedPrimaryTabId(fetchid7);                      
+        };
+    <!-- BB-8 Project changes start -->
+        var keylistener8 = function (result) {
+           sforce.console.getFocusedPrimaryTabId(fetchid8);                      
+        };
+        var keylistener9 = function (result) {
+           sforce.console.getFocusedPrimaryTabId(fetchid9);                      
+        };
+        var keylistener10 = function (result) {
+           sforce.console.getFocusedPrimaryTabId(fetchid10);                      
+        };
+        <!-- BB-8 Project changes end -->
+        <!--Start - 9-Jun-2016 - Jyolsna - CR-00138097  -->
+         var keylistener11 = function (result) {
+           sforce.console.getFocusedPrimaryTabId(fetchid11);                      
+        };
+        <!--End - 9-Jun-2016 - Jyolsna - CR-00138097  -->
+        //Add listeners
+        sforce.console.addEventListener('FocusTab1', keylistener1);
+        sforce.console.addEventListener('FocusTab2', keylistener2);
+        sforce.console.addEventListener('FocusTab3', keylistener3);
+        sforce.console.addEventListener('FocusTab4', keylistener4);
+        sforce.console.addEventListener('FocusTab5', keylistener5);
+        sforce.console.addEventListener('FocusTab6', keylistener6);
+        sforce.console.addEventListener('FocusTab7', keylistener7);
+    <!-- BB-8 Project changes start -->
+        sforce.console.addEventListener('FocusTab8', keylistener8);
+        sforce.console.addEventListener('FocusTab9', keylistener9);
+        sforce.console.addEventListener('FocusTab10', keylistener10);
+        <!-- BB-8 Project changes end -->
+        sforce.console.addEventListener('FocusTab11', keylistener11);<!--Added by Jyolsna - CR-00138097-->
+        
+        var fetchid1 = function fetchid1(result) {
+            sforce.console.getSubtabIds(result.id,showTabId1);           
+        };
+         var fetchid2 = function fetchid2(result) {
+            sforce.console.getSubtabIds(result.id,showTabId2);           
+        };
+         var fetchid3 = function fetchid3(result) {
+            sforce.console.getSubtabIds(result.id,showTabId3);           
+        };
+         var fetchid4 = function fetchid4(result) {
+            sforce.console.getSubtabIds(result.id,showTabId4);           
+        };
+         var fetchid5 = function fetchid5(result) {
+            sforce.console.getSubtabIds(result.id,showTabId5);           
+        };
+         var fetchid6 = function fetchid6(result) {
+            sforce.console.getSubtabIds(result.id,showTabId6);           
+        };
+         var fetchid7 = function fetchid7(result) {
+            sforce.console.getSubtabIds(result.id,showTabId7);           
+        };
+    <!-- BB-8 Project changes start -->
+        var fetchid8 = function fetchid8(result) {
+            sforce.console.getSubtabIds(result.id,showTabId8);           
+        };
+        var fetchid9 = function fetchid9(result) {
+            sforce.console.getSubtabIds(result.id,showTabId9);           
+        };
+        var fetchid10 = function fetchid10(result) {
+            sforce.console.getSubtabIds(result.id,showTabId10);           
+        };
+        
+        <!-- BB-8 Project changes end -->
+        <!--Start - 9-Jun-2016 - Jyolsna - CR-00138097  -->
+        var fetchid11 = function fetchid11(result) {
+            sforce.console.getSubtabIds(result.id,showTabId11);           
+        };
+        <!--End - 9-Jun-2016 - Jyolsna - CR-00138097  -->
+        var showTabId1 = function showTabIds(result) {
+           
+            if(result.ids[0]!=null){
+                sforce.console.focusSubtabById(result.ids[0]);
+            }
+            };
+            var showTabId2 = function showTabIds(result) {
+            if(result.ids[1]!=null){
+                sforce.console.focusSubtabById(result.ids[1]);
+            }
+            };
+            var showTabId3 = function showTabIds(result) {
+            if(result.ids[2]!=null){
+                sforce.console.focusSubtabById(result.ids[2]);
+            }
+            };
+            var showTabId4 = function showTabIds(result) {
+            if(result.ids[3]!=null){
+                sforce.console.focusSubtabById(result.ids[3]);
+            }
+            };
+            var showTabId5 = function showTabIds(result) {
+            if(result.ids[4]!=null){
+                sforce.console.focusSubtabById(result.ids[4]);
+            }
+            };
+            var showTabId6 = function showTabIds(result) {
+            if(result.ids[5]!=null){
+                sforce.console.focusSubtabById(result.ids[5]);
+            }
+            };
+            var showTabId7 = function showTabIds(result) {
+            if(result.ids[6]!=null){
+                sforce.console.focusSubtabById(result.ids[6]);
+            }
+            };
+        <!-- BB-8 Project changes start -->
+             var showTabId8 = function showTabIds(result) {
+            if(result.ids[7]!=null){
+                sforce.console.focusSubtabById(result.ids[7]);
+            }
+            };
+             var showTabId9 = function showTabIds(result) {
+            if(result.ids[8]!=null){
+                sforce.console.focusSubtabById(result.ids[8]);
+            }
+            };
+             var showTabId10 = function showTabIds(result) {
+            if(result.ids[9]!=null){
+                sforce.console.focusSubtabById(result.ids[9]);
+            }
+            };
+        <!-- BB-8 Project changes end -->
+            <!--Start - 9-Jun-2016 - Jyolsna - CR-00138097  -->
+            var showTabId11 = function showTabIds(result) {
+            if(result.ids[10]!=null){
+                sforce.console.focusSubtabById(result.ids[10]);
+            }
+            };
+            <!--End - 9-Jun-2016 - Jyolsna - CR-00138097  -->
+    //CR-00123420 Function to default Substatus        
+    function defaultSubStatus(){
+        var x_substatus=document.getElementById("pageid:formid:pbid:repeat1:3:ProdId2");      
+        var options= x_substatus.options;
+        options[0].selected= true;   
+    }
+    
+    //CR-00134241 added parameter to focussave function      
+    function focusSave(val,ref,current){
+      
+      var detect = val.indexOf('Close');
+      var detect1 = val.indexOf('Escalation Requested');//CR-00116268      
+      var OldValue = '{!case.sub_status__c}';//CR-00116268
+      var OldStatus = '{!case.Status}';//CR-00123420
+      
+      if(detect != -1){
+        alert("Please navigate to the Resolution tab to close the case."); 
+         //sforce.console.focusSubtabByNameAndPrimaryTabId('resInfo',result2.id);
+         //Start CR-00116268 added alerts and cofirmation box
+         //CR-00123420 Change status and substatus back to original on close scenarios
+        var x_status=document.getElementsByClassName("Status")[0];      
+        var options= x_status.options;
+        for (var i= 0; i<options.length; i++) {
+            if (options[i].value==OldStatus) {
+                console.log('SUBSTATUS :' + options[i].value); 
+                options[i].selected= true;
+                break;
+            }
+        }
+         
+        var x_subStatus=document.getElementById("pageid:formid:pbid:repeat1:3:ProdId2");      
+        var options= x_subStatus.options;
+        for (var i= 0; i<options.length; i++) {
+            if (options[i].value==OldValue) {
+                options[i].selected= true;
+                break;
+            }
+        }
+              
+        
+     }
+     else if(detect1 != -1){
+            var txt;
+            var r = confirm("Are you sure you want to escalate?");
+            if (r == true) {
+                savethecase_ref();
+            } else {
+                var x_subStatus=document.getElementById("pageid:formid:pbid:repeat1:3:ProdId2");     
+                var options= x_subStatus.options;
+                for (var i= 0; i<options.length; i++) {
+                    if (options[i].value==OldValue) {
+                        options[i].selected= true;
+                        break;
+                    }
+                }
+                var x_sub=document.getElementsByClassName("Status")[0];
+                var options= x_sub.options;
+                for (var i= 0; i<options.length; i++) {
+                    if (options[i].value==OldStatus) {
+                        options[i].selected= true;
+                        break;
+                    }
+                }                    
+                    
+            }
+     //End CR-00116268 added alerts and cofirmation box
+      }else{
+          if(ref==false){
+                savethecase();
+            }
+            else if(ref==true){
+                //CR-00134241 starts
+                if(current==true){
+                    savethecase_ref2();
+                }//CR-00134241 ends
+                else{
+                    savethecase_ref();
+                }
+            }
+      }
+
+    }  
+    //CR-00134241 starts    
+//Start - CR-00138560: Added Error Message for Sev1 PREM Transfer queue as pop up window   
+    function refresInfo2(errorMessage){
+        if(errorMessage != null && errorMessage != ''){
+            alert('Error Message : '+errorMessage);
+        }
+    //End - CR-00138560
+        sforce.console.refreshSubtabByNameAndPrimaryTabId('probdef', primarytab_id, false);
+        sforce.console.refreshSubtabByNameAndPrimaryTabId('resInfo', primarytab_id, false);
+        sforce.console.refreshSubtabByNameAndPrimaryTabId('vceInfo', primarytab_id, false);<!-- added by Jyolsna -->
+        sforce.console.refreshPrimaryTabById(primarytab_id, true,null);
+    }
+    //CR-00134241 ends
+    
+        
+    function refresInfo(){
+        sforce.console.refreshSubtabByNameAndPrimaryTabId('probdef', primarytab_id, false);
+        sforce.console.refreshSubtabByNameAndPrimaryTabId('resInfo', primarytab_id, false);
+        sforce.console.refreshSubtabByNameAndPrimaryTabId('vceInfo', primarytab_id, false);<!-- added by Jyolsna -->
+    }
+                 
+   //$('input[title="Case Owner"]').attr('size','25');  
+   //$("div.OwnerId").parent().attr("align","left");    
+   //$("div.OwnerId").parent().css("padding-left", "25px"); 
+  
+   if(window.navigator.appName=='Microsoft Internet Explorer')
+   {
+   $('input[title="Case Owner"]').attr('size','29.5');  
+   }
+   else
+   {
+   $('input[title="Case Owner"]').attr('size','30');  
+   }  
+   //To hide Parent SR Lookup image
+   $('img[alt="Parent Case Lookup (New Window)"]').css("display","none");
+      
+</script>
+
+        <style>        
+            .widthPx {            
+                {!SubStatusStyle}
+            }
+            
+            .ui-autocomplete-input{
+                   height:20px !important;
+             }
+           h2{
+           font-size:14px !important;
+           }
+            
+            
+        </style>
+        
+        <script>
+       
+        jQuery.noConflict();
+        
+        jQuery(document).ready(function(){
+                       
+            setTimeout(function(){
+                resizePicklistWidth();
+                jQuery('.Status').bind('change', resizePicklistWidth);
+            }, 500);            
+        });
+        
+       
+        function resizePicklistWidth() {
+            
+            jQuery('tr > td > span > select').each(function(){         
+                   
+                jQuery(this).prop('class','widthPx');                                
+            });
+        }
+        
+        //To hide Parent SR Lookup image
+       $('img[alt="Parent Case Lookup (New Window)"]').css("display","none");
+       $('img[alt="Product Lookup (New Window)"]').css("display","none");
+        <!--CR-00102156  style changes-->
+        if(window.navigator.appName=='Microsoft Internet Explorer')
+        {
+            document.write('<style>.GSS_Center__c{width:221px !important; height:24px !important;margin:2px !important;}</style>'); <!--CR-00102156 Added style for support center-->
+        }
+        else{            
+            document.write('<style>.GSS_Center__c{width:202px !important; height:24px !important;margin:2px !important;}</style>'); <!--CR-00102156 Added style for support center-->
+        }
+        <!--CR-00102156  style changes-->
+        
+        //CR-00123420 : Assigning to Queues change starts
+        function hideOwnerQueueUserField(){
+            var x=document.getElementsByTagName("select");
+              for(i=0;i<x.length;i++){
+                  if(x[i].title == 'Search scope'){
+                      x[i].style.display="none";
+                  }
+              }
+            if(window.navigator.appName=='Microsoft Internet Explorer'){
+                $('input[title="Case Owner"]').attr('size','29.5');  
+            }else{
+                $('input[title="Case Owner"]').attr('size','30');  
+            }
+            $('img[alt="Parent Case Lookup (New Window)"]').css("display","none");
+            $('img[alt="Product Lookup (New Window)"]').css("display","none");
+            //$('img[alt="Case Owner Lookup (New Window)"]').css("display","none");
+                    
+        }
+        //CR-00123420 : Assigning to Queues change ends
+        
+        
+        
+        // BB-8 Project
+        
+         
+        
+        
+       
+         var popup_email;
+         var popupclosed='false';
+        
+         function openServiceRestorationEmail(){
+           var myquery = "SELECT Id,Technical_Contact_Email__c,ContactId FROM Case WHERE Id = '{!cId}' limit 1";
+                
+                sforce.connection.sessionId = '{!$Api.Session_ID}';
+                
+                var result = sforce.connection.query(myquery); 
+                
+                var records = result.getArray("records"); 
+                //CR-00110761 starts
+               
+                var caseId = '{!cId}';                
+                //var ntypewospace = ntype.replace(/ /g,"_");
+                var ntypewospace = 'a';
+                //CR-00110761 ends
+                               
+               if(records[0].ContactId !=''&&records[0].ContactId !=null){ 
+                 window.open('/apex/GSS_Agent_ServiceRestoration_Email?id={!Case.Id}', '_blank','resizable=yes', 'toolbar=0,location=0,menubar=0');
+               }
+                else{
+                    alert('Contact is missing for this case. Cannot send Email.');
+               }        
+        
+         }
+         function openRCAEmail(){
+         
+           var myquery = "SELECT Id,Technical_Contact_Email__c,ContactId FROM Case WHERE Id = '{!cId}' limit 1";
+                
+                sforce.connection.sessionId = '{!$Api.Session_ID}';
+                
+                var result = sforce.connection.query(myquery); 
+                
+                var records = result.getArray("records"); 
+                //CR-00110761 starts
+               
+                var caseId = '{!cId}';                
+                //var ntypewospace = ntype.replace(/ /g,"_");
+                var ntypewospace = 'a';
+                //CR-00110761 ends
+                               
+               if(records[0].ContactId !=''&&records[0].ContactId !=null){ 
+                 window.open('/apex/GSS_Agent_RCA_Email?id={!Case.Id}', '_blank', 'resizable=yes','toolbar=0,location=0,menubar=0');
+               }else{
+                    alert('Contact is missing for this case. Cannot send Email.');
+                }  
+        
+         }
+         function OpenMilestoneMail(milestoneName){
+            var myquery = "SELECT Id,Technical_Contact_Email__c,ContactId FROM Case WHERE Id = '{!cId}' limit 1";
+                
+                sforce.connection.sessionId = '{!$Api.Session_ID}';
+                
+                var result = sforce.connection.query(myquery); 
+                
+                var records = result.getArray("records"); 
+                //CR-00110761 starts
+               
+                var caseId = '{!cId}';                
+                //var ntypewospace = ntype.replace(/ /g,"_");
+                var ntypewospace = 'a';
+                //CR-00110761 ends
+                               
+               if(records[0].ContactId !=''&&records[0].ContactId !=null){ 
+                 window.open('/apex/GSS_Agent_SendMilestoneMail?id={!Case.Id}&tab='+milestoneName, '_blank', 'toolbar=0,location=0,menubar=0');
+               }else{
+                    alert('Contact is missing for this case. Cannot send Email.');
+                }  
+         
+         }
+         function openFinalCorrectionEmail(){
+           var myquery = "SELECT Id,Technical_Contact_Email__c,ContactId FROM Case WHERE Id = '{!cId}' limit 1";
+                
+                sforce.connection.sessionId = '{!$Api.Session_ID}';
+                
+                var result = sforce.connection.query(myquery); 
+                
+                var records = result.getArray("records"); 
+                //CR-00110761 starts
+               
+                var caseId = '{!cId}';                
+                //var ntypewospace = ntype.replace(/ /g,"_");
+                var ntypewospace = 'a';
+                //CR-00110761 ends
+                               
+               if(records[0].ContactId !=''&&records[0].ContactId !=null){ 
+                 window.open('/apex/GSS_Agent_FinalCorrection_Email?id={!Case.Id}', '_blank', 'resizable=yes','toolbar=0,location=0,menubar=0');
+               }else{
+                   alert('Contact is missing for this case. Cannot send Email.');
+               }     
+        
+         }
+          
+          function checkWorkAroundMail(){
+                
+                var myquery = "SELECT Id,Technical_Contact_Email__c,ContactId FROM Case WHERE Id = '{!cId}' limit 1";
+                
+                sforce.connection.sessionId = '{!$Api.Session_ID}';
+                
+                var result = sforce.connection.query(myquery); 
+                
+                var records = result.getArray("records"); 
+                //CR-00110761 starts
+               
+                var caseId = '{!cId}';                
+                //var ntypewospace = ntype.replace(/ /g,"_");
+                var ntypewospace = 'a';
+                //CR-00110761 ends
+                               
+               if(records[0].ContactId !=''&&records[0].ContactId !=null){                
+                 
+                    if(records[0].Technical_Contact_Email__c!=''&&records[0].Technical_Contact_Email__c!=null&& records[0].ContactId!=''&& records[0].ContactId!=null){        
+                        popup_email=window.open('/apex/GSS_Agent_Workaround_Email?cid={!cId}&tab=Workaround','SendEmail'+ntypewospace+caseId,'height=900,width=1100 ,resizable=yes,scrollbars=yes,toolbar=no,status=no,sidebars=no');
+                    return false;
+                    }
+                    else{
+                        alert('Technical Contact Email not populated. Redirecting to Contact & Entitlement Tab.');
+                        sforce.console.getFocusedPrimaryTabId(ptabid);
+                    }
+                }
+                else{
+                    alert('Contact is missing for this case. Cannot send Email.');
+                }                    
+        }  
+        var tabNameVar;
+         function refreshSubTab(tabName){
+              
+            
+             tabNameVar = tabName;
+             sforce.console.getEnclosingPrimaryTabId(refreshSubTabs);
+              
+            
+            }
+            
+            var refreshSubTabs= function refreshSubTabs(result,tabName) {
+                primaryTabId = result.id; 
+                
+                
+                if(tabNameVar == 'workaround' || tabNameVar == 'Restoration'){
+                 
+                  sforce.console.refreshSubtabByNameAndPrimaryTabId('resInfo', primaryTabId, false);
+                  sforce.console.refreshSubtabByNameAndPrimaryTabId('srsummary', primaryTabId, false);
+               }else{
+                   sforce.console.refreshSubtabByNameAndPrimaryTabId('srsummary', primaryTabId, false);
+               }   
+          };      
+         
+        </script>
+        
+</apex:page>

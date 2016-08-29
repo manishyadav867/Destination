@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SharingRules xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sharingCriteriaRules>
+        <fullName>AMER_Compensation_Sharing_rule</fullName>
+        <accessLevel>Edit</accessLevel>
+        <label>AMER Compensation Sharing rule</label>
+        <sharedTo>
+            <group>AMER_Commissions</group>
+        </sharedTo>
+        <booleanFilter>1 AND 2</booleanFilter>
+        <criteriaItems>
+            <field>RecordTypeId</field>
+            <operation>equals</operation>
+            <value>Quota and Commissions</value>
+        </criteriaItems>
+        <criteriaItems>
+            <field>QnC_Case_Type__c</field>
+            <operation>equals</operation>
+            <value>AMER,Corporate-AMER,Geo-Corporate-AMER</value>
+        </criteriaItems>
+    </sharingCriteriaRules>
+    <sharingCriteriaRules>
+        <fullName>AMER_Regional_Sharing_rule</fullName>
+        <accessLevel>Edit</accessLevel>
+        <label>AMER Regional Sharing rule</label>
+        <sharedTo>
+            <group>AMER_Sales_Ops</group>
+        </sharedTo>
+        <booleanFilter>1 AND 2</booleanFilter>
+        <criteriaItems>
+            <field>RecordTypeId</field>
+            <operation>equals</operation>
+            <value>Quota and Commissions</value>
+        </criteriaItems>
+        <criteriaItems>
+            <field>QnC_Case_Type__c</field>
+            <operation>equals</operation>
+            <value>AMER,Corporate-AMER,Geo-Corporate-AMER,Amer-Comp</value>
+        </criteriaItems>
+    </sharingCriteriaRules>
+    <sharingCriteriaRules>
+        <fullName>APJ_CaseSharing</fullName>
+        <accessLevel>Edit</accessLevel>
+        <label>APJ_CaseSharing</label>
+        <sharedTo>
+            <group>APJ_Commissions</group>
+        </sharedTo>
+        <booleanFilter>1 AND 2</booleanFilter>
+        <criteriaItems>
+            <field>RecordTypeId</field>
+            <operation>equals</operation>
+            <value>Quota and Commissions</value>
+        </criteriaItems>
+        <criteriaItems>
+            <field>QnC_Case_Type__c</field>
+            <operation>equals</operation>
+            <value>APJ,Corporate-APJ,Geo-Corporate-APJ</value>
+        </criteriaItems>
+    </sharingCriteriaRules>
+    <sharingCriteriaRules>
+        <fullName>Case_GeoCommissions</fullName>
+        <accessLevel>Edit</accessLevel>
+        <label>Case GeoCommissions</label>
+        <sharedTo>
+            <group>GeoCommissions</group>
+        </sharedTo>
+        <booleanFilter>1 AND 2</booleanFilter>
+        <criteriaItems>
+            <field>RecordTypeId</field>
+            <operation>equals</operation>
+            <value>Quota and Commissions</value>
+        </criteriaItems>
+        <criteriaItems>
+            <field>QnC_Case_Type__c</field>
+            <operation>equals</operation>
+            <value>Geo-Corporate,Geo-Corporate-Salesops,Geo-Corporate-APJ,Geo-Corporate-AMER,Geo-Corporate-EMEA</value>
+        </criteriaItems>
+    </sharingCriteriaRules>
+    <sharingCriteriaRules>
+        <fullName>Corporate_CaseSharing</fullName>
+        <accessLevel>Edit</accessLevel>
+        <label>Corporate_CaseSharing</label>
+        <sharedTo>
+            <group>Corporate_Commissions</group>
+        </sharedTo>
+        <booleanFilter>1 AND 2</booleanFilter>
+        <criteriaItems>
+            <field>RecordTypeId</field>
+            <operation>equals</operation>
+            <value>Quota and Commissions</value>
+        </criteriaItems>
+        <criteriaItems>
+            <field>QnC_Case_Type__c</field>
+            <operation>equals</operation>
+            <value>Corporate,Corporate-Salesops,Corporate-EMEA,Corporate-AMER,Corporate-APJ,Geo-Corporate,Geo-Corporate-Salesops,Geo-Corporate-APJ,Geo-Corporate-AMER,Geo-Corporate-EMEA</value>
+        </criteriaItems>
+    </sharingCriteriaRules>
+    <sharingCriteriaRules>
+        <fullName>Quota_and_Commissions_EMEA</fullName>
+        <accessLevel>Edit</accessLevel>
+        <label>Quota and Commissions - EMEA</label>
+        <sharedTo>
+            <group>EMEA_Commissions</group>
+        </sharedTo>
+        <booleanFilter>1 AND 2</booleanFilter>
+        <criteriaItems>
+            <field>RecordTypeId</field>
+            <operation>equals</operation>
+            <value>Quota and Commissions</value>
+        </criteriaItems>
+        <criteriaItems>
+            <field>QnC_Case_Type__c</field>
+            <operation>equals</operation>
+            <value>EMEA,Corporate-EMEA,Geo-Corporate-EMEA</value>
+        </criteriaItems>
+    </sharingCriteriaRules>
+    <sharingCriteriaRules>
+        <fullName>Sharing_rule_for_Global_Ops</fullName>
+        <accessLevel>Edit</accessLevel>
+        <label>Sharing rule for Global Ops</label>
+        <sharedTo>
+            <group>Globalcommissions</group>
+        </sharedTo>
+        <booleanFilter>1 AND 2</booleanFilter>
+        <criteriaItems>
+            <field>RecordTypeId</field>
+            <operation>equals</operation>
+            <value>Quota and Commissions</value>
+        </criteriaItems>
+        <criteriaItems>
+            <field>QnC_Case_Type__c</field>
+            <operation>equals</operation>
+            <value>Geo-Corporate-Salesops,GlobalOps,Corporate-Salesops</value>
+        </criteriaItems>
+    </sharingCriteriaRules>
+</SharingRules>

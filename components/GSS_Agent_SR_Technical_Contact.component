@@ -1,0 +1,164 @@
+<!--Author  : Nierrbhayy (Accenture)
+Purpose : Component created to Display technical contact and SR number in a box.
+Date    : 6-April-2014 - GSS Agent Console Project
+-->
+<!--CR-00096132 11-July-2014 Increased the size of the Box-->
+<!--CR-00122294 29-Dec-2014 Account Hyperlink-->
+<!--CR-00134938 3-Sep-2015 Prevent Account hyperlinks from getting broken-->
+<!--CR-00134785 5-Oct-2015 Open RPQ details in new Window-->
+<!--CR-00138253 29-Mar-2016 EA number exposed and hyperlink to details-->
+<!--CR-00134626: 07-april-2016 Suresh Kumar Link RPQ to Case EA Number-->
+<!--CR-00138856: 17-May-2016 Suresh Kumar Changed TSE Synopsis/Executive Summary to TSE Synopsis name-->
+<!--CR-00137347: 05-Aug-2016:Pabitra: Increased the length of TSE Synopsis field-->
+<!--CR-00140332 :4-august-2016 - added Entitlement Name in banner -->
+<apex:component controller="GSS_AgentSRTechnicalContactController"><!--CR-00134785 added contoller -->
+      
+    <apex:includeScript value="/soap/ajax/29.0/connection.js"/>
+    <apex:includeScript value="/soap/ajax/29.0/apex.js"/>
+    <apex:includeScript value="/js/functions.js"/>
+    <apex:includeScript value="/support/console/29.0/integration.js"/>
+    
+
+        
+    <apex:attribute name="TechCon" description="Technical Contact" type="string" required="true"/>
+    <apex:attribute name="CaseNumber" description="case number" type="string" required="true"/>
+    <apex:attribute name="Account" description="Account" type="string" />
+    
+    <apex:attribute name="AccountId" description="Account ID" type="string" ><!--CR-00122294-->
+    <apex:inlineEditSupport event="ondblclick"/>
+    </apex:attribute>
+    <apex:attribute name="Synopsis" description="TSE Synopsis" type="string"/><!--CR-00122294-->
+    <apex:attribute name="EAName" description="EA Name" type="string"/><!--CR-00138253-->
+    <apex:attribute name="EANumber" description="EA Number" type="string"/><!--CR-00138253-->
+    <apex:attribute name="EntitleMentName" description="Entitlement Name" type="string"/><!--CR-00138253-->
+    
+    <apex:outputPanel id="allprf" rendered="{!if($Profile.Name !='GSS Premier Services',TRUE,FALSE)}">
+    <table columns="4" frame="border" cellpadding="2" style="padding:7px;border:1px solid black" width="100%" align="center" border="0">
+      <tr>
+        <td width="9%" align="right">
+             <h6>Technical Contact :</h6>
+        </td>
+        <td width="10%" align="left">
+            <apex:outputText value="{!TechCon}"></apex:outputText>
+        </td>
+        <td width="7%" align="right">
+            <h6> SR Number : </h6>
+        </td>
+        <td width="9%" align="left">
+            <apex:outputText value="{!CaseNumber}" title="{!Synopsis}"></apex:outputText>
+            <img id="escpic" src="/s.gif" />
+        </td>
+        <td width="5%" align="right">
+            <h6> Account : </h6>
+        </td>
+        <td width="14%" align="left"> <!--CR-00122294-->
+            <A HREF="#" onClick="openAccountPage();return false">
+             {!Account}
+            </A>
+     <apex:image id="the_Image" url="{!URLFOR($Resource.RPQ_Icon, 'RPQ/Icon.png')}" width="20" height="20" rendered="{!rpqSize}" onClick="rpq_Details();"/>      
+        </td>
+      </tr>
+      <tr>    
+          <td align="right"><h6> TSE Synopsis : </h6></td>
+          <td align="left" colspan="5">{!LEFT(Synopsis,400)+ if(LEN(Synopsis)>400,'...','')}</td><!--CR-00137347:Increased the length of TSE Synopsis field-->
+          
+      </tr>
+       
+    </table>
+    </apex:outputPanel>
+    <!--CR-00138255 Starts-->
+    <apex:outputPanel id="preSer" rendered="{!if($Profile.Name ='GSS Premier Services',TRUE,FALSE)}">
+    <table columns="4" frame="border" cellpadding="2" style="padding:7px;border:1px solid black" width="100%" align="center" border="0">
+      <tr>
+        <td width="9%" align="right">
+             <h6>Technical Contact :</h6>
+        </td>
+        <td width="10%" align="left">
+            <apex:outputText value="{!TechCon}"></apex:outputText>
+        </td>
+        <td width="7%" align="right">
+            <h6> SR Number : </h6>
+            
+        </td>
+        <td width="9%" align="left">
+            <apex:outputText value="{!CaseNumber}" title="{!Synopsis}"></apex:outputText>
+            <img id="escpic" src="/s.gif" />
+        </td>
+        <td width="5%" align="right">
+            <h6> Account : </h6>
+        </td>
+        <td width="14%" align="left">
+            <A HREF="#" onClick="openAccountPage();return false">
+             {!Account}
+            </A>
+     <apex:image id="theImage" url="{!URLFOR($Resource.RPQ_Icon, 'RPQ/Icon.png')}" width="20" height="20" rendered="{!rpqSize}" onClick="rpq_Details();"/>      
+        </td>
+      </tr>
+      <tr>    
+          <td align="right"><h6> EA Name : </h6></td>
+           <td width="10%" align="left">
+             <apex:outputText value="{!EAName}"></apex:outputText>
+          </td>
+          
+          <td align="right"><h6> EA Number : </h6></td>
+          <td width="10%" align="left">
+             <apex:outputText value="{!EANumber}"></apex:outputText>
+          </td>
+          <!--CR-00140332 start-->
+          <td align="right" width="7%"><h6> Entitlement Name : </h6></td>
+          <td width="10%" align="left">
+             <apex:outputText value="{!EntitleMentName}"></apex:outputText>
+          </td>
+          <!--CR-00140332 start-->
+          <!--CR-00138856: 17-May-2016 Suresh Kumar Changed TSE Synopsis/Executive Summary to TSE Synopsis name-->
+      <tr>    
+          <td align="right"><h6> TSE Synopsis : </h6></td><!-- CR-00138255, CR-00138856 -->
+          <td align="left" colspan="5">{!LEFT(Synopsis,400)+ if(LEN(Synopsis)>400,'...','')}</td><!--CR-00137347:Increased the length of TSE Synopsis field-->     
+      </tr>
+      <!--00134626 Starts-->
+      </tr>
+      <!--00134626 Ends--> 
+    </table>
+    </apex:outputPanel>
+    <!--CR-00138255 Ends-->
+    <script language="javascript">
+    
+        chk_escalated();
+        
+        function chk_escalated(){
+            var myquery = "SELECT Id,IsEscalated FROM Case WHERE casenumber = '{!CaseNumber}' limit 1";
+            sforce.connection.sessionId = '{!$Api.Session_ID}';
+            var result = sforce.connection.query(myquery); 
+            var records = result.getArray("records"); 
+            if(records[0].IsEscalated=='true'){                  
+                document.getElementById("escpic").setAttribute("class", "escalatedSmall");
+            }
+            else{
+                document.getElementById("escpic").setAttribute("class", "");
+            }    
+        }
+        
+    //CR-00122294
+        function openAccountPage(){
+        
+            //Open the account detail page in a new tab
+            if(window.location.href.indexOf("isdtp") > -1){
+           
+                if('{!AccountId}'!=''){                
+                    sforce.console.openPrimaryTab(null, '/{!AccountId}', true,'{!JSENCODE(Account)}', null,'{!JSENCODE(Account)}');//CR-00134938 Sakshi Suri 3-Sep-15 Replaced {!Account} with {!JSENCODE(Account)}
+        }else{
+                    alert('Account ID not available');
+                }
+            }else{
+                alert('Account will open only from console tabs');
+            }            
+        }
+    //CR-00134785 Sakshi Suri 5-Oct-2015 Function to open RPQ details in new window.
+    function rpq_Details(){
+        var id ='{!cId}';//changed AccountId by CaseId CR-00134626
+        var url="/apex/GSS_Agent_CaseRPQDetailsPage?id="+id;
+        var popup_rr=window.open(url,'_blank','height=1000,width=1200,left=100,top=150,resizable=no,scrollbars=yes,toolbar=no,status=no');   
+        }
+    </script>
+
+</apex:component>
