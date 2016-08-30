@@ -1,9 +1,0 @@
-<!--
-Name: GSS_RequestHistoryPage
-Description : CR-00140215: This page is used to display the history of 'Current status' field in Request object
-Author : Accenture(Jyolsna)
-Created Date: 2-Aug-2016
----->
-<apex:page standardController="GSS_Request__c" showHeader="true">
-    <c:GSS_RequestHistoryComponent RecId="{!GSS_Request__c.Id}" ObjName="GSS_Request__c" />
-</apex:page>
