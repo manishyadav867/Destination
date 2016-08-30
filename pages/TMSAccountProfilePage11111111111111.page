@@ -1,0 +1,434 @@
+<!--
+// ************************Version Updates********************************************
+//
+// Updated Date     Updated By          Update Comments 
+//
+// 14-May-2013    Ponna Gopal       Added Custom Created Date Field for CR-00028804
+// 07-Jan-2015    Vijit Vijay       Changed label:'vCHS' to 'vCA' and 'SDDC Suites' to 'Suites' in "Excepted" and "Actual"
+                                    Page Block Section for CR-00123314
+// 17-June-2015   Vijit Vijay       Added field 'Air Watch' in Add New Profile Detail Section for CR-00134479    
+// 2 Sep 2015     Ravi Kiran D      CR-00106306 - Changed the following headers as dynamic for the values  by fetching them using custom setting(API Name:HeaderSettings__c)                           
+//                                 (Type,Year,Half,Compute,End User Computing,Air Watch,Management,Suites,VCA,Storage and Availability,
+//                                 Networking and Security,Customer Type,ELA Status,Created Date,Last Modified Date,History)
+// Modified Date  Modified By      Release Date          CR #                           Description
+// 2 Sep 2015     Accenture        6th Nov 2015          CR-00135777            Dynamically Add/Remove/Change label of the Account Profile Detail Fields
+// 18-Jan-2016    Chhedika         Modified code for CR-00137388    
+// 26 April 16    Saumya           Modified for CR- 00138221
+// 23 June  16    Saumya           Rearranged fields for CR-00140207
+// ************************************************************************************
+
+-->
+
+<apex:page standardController="Account_Profile__c" title="TMS" extensions="TMSAccountProfileController" id="pg">
+
+<script type="text/javascript" src="{!URLFOR($Resource.TMSVMwareResources, '/js/jquery-1.5.2.min.js')}"/>
+<script type="text/javascript" src="{!URLFOR($Resource.TMSVMwareResources, '/js/thickbox.js')}"></script>
+<link href="{!URLFOR($Resource.TMSVMwareResources, '/css/thickbox.css')}" rel="stylesheet" />
+    
+<style>
+.reqSelect {
+}
+
+table.inlineEditTbl td{
+    height: 26px !important; 
+}
+table.inlineEditTbl input[type="text"] {
+    width: 80px;
+}
+body {
+    font-size: 75% important;
+}
+</style>
+
+    <apex:sectionHeader title="Account Profile" subtitle="{!Account_Profile__c.Name}"/>
+
+    
+
+    <apex:form id="accountProfileFrm">
+        
+        <apex:actionfunction name="accountChangeAction" action="{!accountChangeAction}" reRender="pageBlockSec2,pageBlockSec3,pageMsg1,pageMsg2"/>
+        
+        <apex:pageBlock id="pb">
+        <!--COde added by safiya mohammad for the CR-00107241 -->
+            <apex:pageMessages id="pageMsg1"/>
+        <!--COde Ended by safiya mohammad for the CR-00107241 -->
+    
+            <apex:pageBlockButtons >
+                <apex:commandButton value="Edit" title="Edit" action="{!editAccountProfile}" rendered="{!NOT(isEditMode)}"/>
+                <apex:commandButton value="Sharing" title="Sharing" action="/p/share/CustomObjectSharingDetail?parentId={!Account_Profile__c.Id}" rendered="{!AND(NOT(isEditMode), showSharingButton)}"/>
+               <!-- <apex:commandButton value="Delete" title="Delete" action="{!delete}" rendered="{!NOT(isEditMode)}"/> -->
+               <apex:commandButton value="Recalculate Sharing" title="Recalculate Sharing" action="{!recalculateSharing}" rendered="{!AND(NOT(isEditMode), showSharingButton)}"/>
+                <apex:commandButton value="Save" title="Save" action="{!saveAccProfile}" rendered="{!isEditMode}"/>
+                <apex:commandButton value="Cancel" title="Cancel" action="{!Cancel}" rendered="{!isEditMode}"/>
+            </apex:pageBlockButtons>
+            
+            <apex:pageBlockSection title="Record Detail" id="pbsAccProfile_edit" rendered="{!isEditMode}">
+                <apex:inputField value="{!Account_Profile__c.Name}"/>
+                <apex:inputField value="{!Account_Profile__c.Status__c}"/>
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection title="Account Information" rendered="{!isEditMode}" id="pageBlockSec2">
+
+                <apex:inputField value="{!Account_Profile__c.Account_Name__c}" rendered="{!NOT(AND(Account_Profile__c.Id != null,isEditMode))}" onchange="accountChangeAction();"/>
+                <apex:outputField value="{!Account_Profile__c.Account_Name__c}" rendered="{!AND(Account_Profile__c.Id != null,isEditMode)}"/>
+                <apex:inputField value="{!Account_Profile__c.Customer_ID__c}"/>
+                <apex:inputField value="{!Account_Profile__c.Sales_Team__c}"/>
+                <apex:inputField value="{!Account_Profile__c.Zip_Code__c}"/>
+                <apex:inputField value="{!Account_Profile__c.Industry__c}"/>
+
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection title="Profile Information" rendered="{!isEditMode}" id="pageBlockSec3">
+                <!--Re-arranged below lines for cr-00140207 -->
+                <apex:inputField value="{!Account_Profile__c.of_x86_Servers__c}" id="noServersInput"/>
+                <apex:inputField value="{!Account_Profile__c.of_Desktops__c}" id="noDesktopInput"/>
+                <apex:inputField value="{!Account_Profile__c.No_of_VMs__c}"/>
+                 <!--START -- Added below field for CR-00137388 -->
+                <apex:inputField value="{!Account_Profile__c.Desktops_virtualized__c}"/>
+                <!--Added below line CR- 00138221-->
+                
+                <apex:inputField value="{!Account_Profile__c.Number_of_Hosts__c}"/>
+                <!--Added Desktops_Virtualized_by_competitor__c for CR- 00138221-->
+                <apex:inputField value="{!Account_Profile__c.Desktops_Virtualized_by_competitor__c}"/>
+                 <!--START -- Added below field for CR-00137388 -->
+                <apex:inputField value="{!Account_Profile__c.Dominant_Edition__c}"/>
+                <!--END -- Added below field for CR-00137388 -->
+         <!--<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>-->
+                <apex:inputField value="{!Account_Profile__c.No_of_Mobile_Devices__c}"/>
+                <!--Start Added below field CR- 00138221-->
+                <apex:inputField value="{!Account_Profile__c.of_CPUs_on_Dominant_Edition__c}"/>
+                <!--End CR- 00138221-->
+                <!--START -- Added below field for CR-00137388 -->
+                <apex:inputField value="{!Account_Profile__c.Mobiles_virtualized__c}"/>         
+                <apex:inputField value="{!Account_Profile__c.Virtualization_Ratio__c}"/>
+                <!--Added below line CR- 00138221-->
+                <apex:inputField value="{!Account_Profile__c.Mobiles_Managed_Secured_by_competitor__c}"/>
+                <apex:inputField value="{!Account_Profile__c.Consolidation_Ratio__c}"/>
+                <apex:inputField value="{!Account_Profile__c.IT_Spend__c}"/>
+                <!-- Added below field CR- 00138221-->
+                <apex:inputField value="{!Account_Profile__c.CPU_managed_in_Hyp_Conv_tech__c}"/>
+                <apex:inputField value="{!Account_Profile__c.Main_Critical_Application__c}"/>
+                <!-- Added below field CR- 00138221-->
+                <apex:inputField value="{!Account_Profile__c.CPU_managed_by_a_vSAN_competitor__c}"/>
+                <apex:inputField value="{!Account_Profile__c.Installed_Applications__c}"/>
+               
+                <!--Commented below line for CR- 00138221-->
+                <!--<apex:inputField value="{!Account_Profile__c.CAS__c}"/>-->
+                  <!--Changes for CR-00140207  Ends  -->
+            </apex:pageBlockSection>
+            
+                
+            <apex:pageBlockSection title="Other Information" rendered="{!isEditMode}">
+                <!--CR-00110911: Re-arrange the below block -->
+                <apex:inputField value="{!Account_Profile__c.EMC_Relation__c}"/>                
+                <apex:inputField value="{!Account_Profile__c.TAM_Status__c}"/>               
+                <apex:inputField value="{!Account_Profile__c.Virtualization_Competitor__c}"/>
+                <!--Commented below line CR- 00138221-->
+                <!--<apex:inputField value="{!Account_Profile__c.PSO__c}"/>-->
+                <apex:inputField value="{!Account_Profile__c.EUC_Virtualization_Competitor__c}"/>
+                <!-- Commented below line for CR-00137388 -->
+                <!--<apex:inputField value="{!Account_Profile__c.Accelerate_Advisory_Services__c}"/> -->
+                <!--Commented below line CR- 00138221-->
+                <!--<apex:inputField value="{!Account_Profile__c.Cloud_Competitor__c}"/>-->
+                <apex:inputField value="{!Account_Profile__c.Global_SI__c}"/>
+                <apex:inputField value="{!Account_Profile__c.vCAC_vCloud_Automation_Center__c}"/>                
+                <apex:inputField value="{!Account_Profile__c.CxO_Relationship__c}"/>
+                <!--Commented below line CR- 00138221-->
+                <!--<apex:inputField value="{!Account_Profile__c.vCloudSuite_Ent__c}"/>-->
+                <apex:inputField value="{!Account_Profile__c.Main_Hardware__c}"/>                              
+                <!-- Commented below line for CR-00137388  -->
+                <!-- <apex:inputField value="{!Account_Profile__c.Account_Development_Workshop__c}"/>  --> 
+                <!--Start Added fields CR- 00138221-->
+                <apex:inputField value="{!Account_Profile__c.vSAN_Competitor__c}"/>
+                <apex:inputField value="{!Account_Profile__c.Mobile_Device_Competitor__c}"/>
+                <!--End CR- 00138221-->
+                </apex:pageBlockSection>
+
+            <apex:pageBlockSection title="Record Detail" id="pbsAccProfile_read" rendered="{!NOT(isEditMode)}">
+                <apex:outputField value="{!Account_Profile__c.Name}"/>
+                <apex:outputField value="{!Account_Profile__c.Status__c}"/>
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection title="Account Information" rendered="{!NOT(isEditMode)}">
+
+                <apex:outputField value="{!Account_Profile__c.Account_Name__c}"/>
+                <apex:outputField value="{!Account_Profile__c.Customer_ID__c}"/>
+                <apex:outputField value="{!Account_Profile__c.Sales_Team__c}"/>
+                <apex:outputField value="{!Account_Profile__c.Zip_Code__c}"/>
+                <apex:outputField value="{!Account_Profile__c.Industry__c}"/>
+
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection title="Profile Information" rendered="{!NOT(isEditMode)}">
+                <!--Rearranged below lines for CR-00140207 -->
+                <apex:inputField value="{!Account_Profile__c.of_x86_Servers__c}"/>
+                <apex:inputField value="{!Account_Profile__c.of_Desktops__c}" />
+                <apex:inputField value="{!Account_Profile__c.No_of_VMs__c}"/>
+                <!--START -- Added below field for CR-00137388 -->
+                <apex:outputField value="{!Account_Profile__c.Desktops_virtualized__c}"/>
+                <!--END -- Added below field for CR-00137388 -->
+                
+                <apex:inputField value="{!Account_Profile__c.Number_of_Hosts__c}"/>
+                <apex:outputField value="{!Account_Profile__c.Desktops_Virtualized_by_competitor__c}"/>
+                <!--<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>-->
+        <!--START -- Added below field for CR-00137388 -->
+                <apex:outputField value="{!Account_Profile__c.Dominant_Edition__c}"/>
+                <!--END -- Added below field for CR-00137388 -->
+                <apex:inputField value="{!Account_Profile__c.No_of_Mobile_Devices__c}"/>
+                 <!--Start Added below field CR- 00138221-->
+                <apex:outputField value="{!Account_Profile__c.of_CPUs_on_Dominant_Edition__c}"/>
+                <!--End CR- 00138221--><!--START -- Added below field for CR-00137388 -->
+                <apex:outputField value="{!Account_Profile__c.Mobiles_virtualized__c}"/>
+                <!--END -- Added below field for CR-00137388 -->
+                <apex:inputField value="{!Account_Profile__c.Virtualization_Ratio__c}"/>
+                <!--Added below line CR- 00138221-->
+                <apex:outputField value="{!Account_Profile__c.Mobiles_Managed_Secured_by_competitor__c}"/>
+                  <!--END -- Added below field for CR-00137388 -->
+                <apex:inputField value="{!Account_Profile__c.Consolidation_Ratio__c}"/>
+                <apex:inputField value="{!Account_Profile__c.IT_Spend__c}"/>
+                <!--Start Added below field CR- 00138221-->
+                <apex:outputField value="{!Account_Profile__c.CPU_managed_in_Hyp_Conv_tech__c}"/>
+                  <!--End CR- 00138221-->
+                <apex:inputField value="{!Account_Profile__c.Main_Critical_Application__c}"/>
+                <!--Start Added below field CR- 00138221-->
+                <apex:outputField value="{!Account_Profile__c.CPU_managed_by_a_vSAN_competitor__c}"/>
+                   <!--End CR- 00138221-->
+                <apex:inputField value="{!Account_Profile__c.Installed_Applications__c}"/>
+                                
+                <!--Commented below line CR- 00138221-->
+                <!--<apex:inputField value="{!Account_Profile__c.CAS__c}"/>-->
+                <!--Changes for CR-00140207 --  ends-->
+               
+              </apex:pageBlockSection>
+
+            <apex:pageBlockSection title="Other Information" rendered="{!NOT(isEditMode)}">
+                <!--CR-00110911: Re-arrange the below block -->
+                <apex:outputField value="{!Account_Profile__c.EMC_Relation__c}"/>
+                <!--<apex:outputField value="{!Account_Profile__c.Development_Framework__c}"/>   --> 
+                <apex:outputField value="{!Account_Profile__c.TAM_Status__c}"/>            
+                <apex:outputField value="{!Account_Profile__c.Virtualization_Competitor__c}"/>
+                <!--Commented below line CR- 00138221-->
+                <!--<apex:outputField value="{!Account_Profile__c.PSO__c}"/>-->
+                <apex:outputField value="{!Account_Profile__c.EUC_Virtualization_Competitor__c}"/>
+                <!-- Commented below line for CR-00137388 -->
+                <!-- <apex:outputField value="{!Account_Profile__c.Accelerate_Advisory_Services__c}"/> -->
+                <!--Commented below line CR- 00138221-->
+                <!--<apex:outputField value="{!Account_Profile__c.Cloud_Competitor__c}"/>-->
+                <apex:outputField value="{!Account_Profile__c.Global_SI__c}"/>
+                <apex:outputField value="{!Account_Profile__c.vCAC_vCloud_Automation_Center__c}"/>
+                <apex:outputField value="{!Account_Profile__c.CxO_Relationship__c}"/>
+                <!--Commented below line CR- 00138221-->
+                <!--<apex:outputField value="{!Account_Profile__c.vCloudSuite_Ent__c}"/>-->
+                <apex:outputField value="{!Account_Profile__c.Main_Hardware__c}"/>  
+                <!-- Commented below line for CR-00137388   -->            
+                <!--<apex:outputField value="{!Account_Profile__c.Account_Development_Workshop__c}"/> -->
+                <!--Start Added fields CR- 00138221-->
+                <apex:outputField value="{!Account_Profile__c.vSAN_Competitor__c}"/>
+                <apex:outputField value="{!Account_Profile__c.Mobile_Device_Competitor__c}"/>
+                <!--End CR- 00138221-->
+                
+            </apex:pageBlockSection>
+            
+        </apex:pageBlock>
+    </apex:form>
+    
+    <apex:form >
+        <apex:pageBlock rendered="{!NOT(isEditMode)}">
+            <apex:pageBlockSection title="Add New Profile Detail" columns="1" id="newProfileSection">
+                <apex:pageMessages id="pm"/>
+                <apex:pageBlockTable value="{!newProfDetail}" var="profDetail" styleClass="inlineEditTbl">
+                    <!--CR-00135777 - Start - NOV 2015 Release - SFA PRM Enhancements-->
+                    <apex:repeat value="{!accProfileDetailFieldsList}" var="profDetailFields">
+                        <apex:column headerValue="{!profDetailFields.Field_Label__c}" rendered="{!profDetailFields.New_AccProDetail_Section__c}">
+                            <apex:inputField value="{!newProfDetail[profDetailFields.Field_API_Name__c]}" required="{!profDetailFields.Is_Field_Required__c}"  rendered="{!profDetailFields.New_AccProDetail_Section__c}"/>
+
+
+
+                        </apex:column>
+                    </apex:repeat>         
+                    <!--CR-00135777 - Start - NOV 2015 Release - SFA PRM Enhancements-->
+
+                    <apex:column >
+                        <apex:commandButton action="{!addNewProfDetail}" value="Add" reRender="newProfileSection" oncomplete="callLoad();"/>
+                    </apex:column>
+                <!--CR-00106306 -  START - changes made as part of CR on header values in this Page block Section(changed the header values from static to dynamic) -- by Ravi kiran-->
+                    <!--<apex:column headerValue="{!type}">
+                        <apex:inputField value="{!newProfDetail.Type__c}" required="true"/>
+                    </apex:column>
+                    <apex:column headerValue="{!year}">
+                        <apex:inputField value="{!newProfDetail.Year__c}" required="true"/>
+                    </apex:column>
+                    <apex:column headerValue="{!half}">
+                        <apex:inputField value="{!newProfDetail.Year_Half__c}" required="true"/>
+                    </apex:column>-->
+                    
+                     <!-- START CODE For CR-00096134 : Changed the headerValue From CIM (Core) to Compute ,EUC to End User Computing, EM to Management and vCloud Suite to SDDC Suites -->
+                   <!-- <apex:column headerValue="{!compute}">
+                        <apex:inputField value="{!newProfDetail.CIM_Core__c}"/>
+                    </apex:column>
+                    <apex:column headerValue="{!endUserComputing}">
+                        <apex:inputField value="{!newProfDetail.EUC__c}"/>
+                    </apex:column>
+                   
+                    // Change Start for CR-00134479 by Vijit Vijay
+                    <apex:column headerValue="{!airWatch}">
+                        <apex:inputText value="{!newProfDetail.AirWatch__c}" />
+                    </apex:column>
+                    // Change END for CR-00134479 by Vijit Vijay
+                    
+                    <apex:column headerValue="{!management}">
+                        <apex:inputField value="{!newProfDetail.EM__c}"/>
+                    </apex:column>
+                    
+                    <apex:column headerValue="{!suites}">
+                        <apex:inputField value="{!newProfDetail.vCloud_Suite__c}"/>
+                    </apex:column>-->
+
+                     <!-- START CODE : Added the Following Code For CR-00096134 -->
+                   <!-- <apex:column headerValue="{!vCA}">
+                        <apex:inputField value="{!newProfDetail.vCHS__c}"/>
+                    </apex:column>
+                    <apex:column headerValue="{!storageandAvailability}">
+                        <apex:inputField value="{!newProfDetail.Storage_Availability__c}"/>
+                    </apex:column>
+                    <apex:column headerValue="{!networkingandSecurity}">
+                        <apex:inputField value="{!newProfDetail.Networking_Security__c}"/>
+                    </apex:column>-->
+                    <!-- END CODE: Added the Following Code For CR-00096134 -->
+                      
+                    <!--CR-00110911: Updated the header value from SFDC Customer Type to Customer Type -->
+                  <!--  <apex:column headerValue="{!customerType}">
+                        <apex:inputField value="{!newProfDetail.Customer_Type__c}"/>
+                    </apex:column>
+                    <apex:column headerValue="{!elaStatus}">-->
+                    <!--CR-00106306 -  END - changes made as part of CR on header values in this Page block Section(changed the header values from static to dynamic) -- by Ravi kiran-->
+                      <!--  <apex:inputField value="{!newProfDetail.ELA_Status__c}"/>
+                   </apex:column>-->
+                     <!-- END CODE For CR-00096134 : Changed the headerValue From CIM (Core) to Compute ,EUC to End User Computing, EM to Management and vCloud Suite to SDDC Suites -->
+                   
+                  
+
+                    <!--<apex:column >
+                        <apex:commandButton action="{!addNewProfDetail}" value="Add" reRender="newProfileSection" oncomplete="callLoad();"/>
+                    </apex:column> -->-->
+                </apex:pageBlockTable>
+              <!--Code added by safiya mohammad for the CR-00107241 -->
+                <script>
+                    function callLoad(){
+                        var IsError = '{!isError}';
+                        if(IsError == false || IsError == 'false'){
+                            location.reload();
+                        }
+                    }
+               </script>
+           <!--COde Ended by safiya mohammad for the CR-00107241 -->
+            </apex:pageBlockSection>
+            </apex:pageBlock>
+       </apex:form>
+       
+       <apex:form id="form3">
+       <apex:pageBlock title="Account Profile Details" id="apfDetails">
+       <!--Code added by safiya mohammad for the CR-00107241 -->
+            <script>
+                function UpdatecallLoad(){
+                    var IsError = '{!isError}';
+                    if(IsError == false || IsError == 'false'){
+                        location.reload();
+                    }
+                }
+               </script>
+            <apex:pagemessages id="pm2"/>
+        <!--COde Ended by safiya mohammad for the CR-00107241 -->
+            <apex:pageBlockButtons location="top">
+                <apex:commandButton value="Save" action="{!saveAccProfileDetails}" id="saveButton" reRender="apfDetails" oncomplete="UpdatecallLoad();"/>
+                <apex:commandButton action="{!refreshAccProfilePage}" id="cancelButton" value="Cancel"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection title="Expected" columns="1">
+                <apex:pageBlockTable value="{!listProfileDetailsExpected}" var="profDetail" styleClass="inlineEditTbl">
+                    <!--CR-00135777 - Start - NOV 2015 Release - SFA PRM Enhancements-->
+                    <apex:repeat value="{!accProfileDetailFieldsList}" var="profDetailFields">
+                        <apex:column headerValue="{!profDetailFields.Field_Label__c}" rendered="{!profDetailFields.Actual_Expected_AccProDetail_Section__c}"  styleClass="reqSelect">
+                            <apex:outputField value="{!profDetail[profDetailFields.Field_API_Name__c]}" rendered="{!profDetailFields.Actual_Expected_AccProDetail_Section__c}"  styleClass="reqSelect">
+
+                                <apex:inlineEditSupport event="ondblClick" disabled="{!!profDetailFields.Inline_Editing__c}"/>
+                            </apex:outputField>
+                        </apex:column>
+
+                    </apex:repeat> 
+                    <!--CR-00135777 - End - NOV 2015 Release - SFA PRM Enhancements-->
+
+                    <apex:column headerValue="{!history}">
+                        <!--CR-00106306 -  END - changes made as part of CR on header values in this Page block Section(changed the header values from static to dynamic) -- by Ravi kiran-->
+                        <!-- 
+                        <a href="/_ui/common/history/ui/EntityHistoryFilterPage?isdtp=vw&id={!profDetail.id}&height=400&amp;width=700" title="<b>{!profDetail.Name} History</b>" target="_blank" class="thickbox">Click Here</a>
+                         -->
+                        <a href="/_ui/common/history/ui/EntityHistoryFilterPage?isdtp=vw&id={!profDetail.id}&amp;keepThis=true&amp;TB_iframe=true&amp;height=400&amp;width=700" title="{!profDetail.Name} History" target="_blank" class="thickbox">Click Here</a>
+                        
+                    </apex:column>
+
+                    <apex:inlineEditSupport event="ondblClick" disabled="{!(ThreeWeekBeforeNow > profDetail.CreatedDate)}"/> 
+                </apex:pageBlockTable>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection title="Actual" columns="1">
+                <apex:pageBlockTable value="{!listProfileDetailsActual}" var="profDetail" styleClass="inlineEditTbl">
+                    <!--CR-00135777 - Start - NOV 2015 Release - SFA PRM Enhancements-->
+                    <apex:repeat value="{!accProfileDetailFieldsList}" var="profDetailFields">
+                        <apex:column headerValue="{!profDetailFields.Field_Label__c}" rendered="{!profDetailFields.Actual_Expected_AccProDetail_Section__c}"  styleClass="reqSelect">
+                            <apex:outputField value="{!profDetail[profDetailFields.Field_API_Name__c]}" rendered="{!profDetailFields.Actual_Expected_AccProDetail_Section__c}"  styleClass="reqSelect">
+
+                                <apex:inlineEditSupport event="ondblClick" disabled="{!!profDetailFields.Inline_Editing__c}"/>
+                            </apex:outputField>
+                        </apex:column>
+                    </apex:repeat>  
+                    <!--CR-00135777 - End - NOV 2015 Release - SFA PRM Enhancements-->
+
+                    <apex:column headerValue="{!history}">
+                    <!--CR-00106306 -  END - changes made as part of CR on header values in this Page block Section(changed the header values from static to dynamic) -- by Ravi kiran-->
+                        <!-- 
+                        <a href="/_ui/common/history/ui/EntityHistoryFilterPage?isdtp=vw&id={!profDetail.id}&height=400&amp;width=700" title="<b>{!profDetail.Name} History</b>" target="_blank" class="thickbox">Click Here</a>
+                         -->
+                        <a href="/_ui/common/history/ui/EntityHistoryFilterPage?isdtp=vw&id={!profDetail.id}&amp;keepThis=true&amp;TB_iframe=true&amp;height=400&amp;width=700" title="{!profDetail.Name} History" target="_blank" class="thickbox">Click Here</a>
+                        
+                    </apex:column>
+
+                    <apex:inlineEditSupport event="ondblClick" showOnEdit="saveButton,cancelButton"/> 
+                </apex:pageBlockTable>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        </apex:form>   
+        
+        <apex:pageBlock title="Account Profile History">
+            <!--
+            <a href="/_ui/common/history/ui/EntityHistoryFilterPage?isdtp=vw&id={!Account_Profile__c.id}&height=400&amp;width=700" title="<b>{!Account_Profile__c.Name} History</b>" target="_blank" class="thickbox">Click Here to View History</a>
+            -->
+            <a href="/_ui/common/history/ui/EntityHistoryFilterPage?isdtp=vw&id={!Account_Profile__c.id}&amp;keepThis=true&amp;TB_iframe=true&amp;height=400&amp;width=700" title="{!Account_Profile__c.Name} History" target="_blank" class="thickbox">Click Here to View History</a>
+            
+            
+           <!-- <apex:pageBlockTable value="{!AccProfileHistory}" var="hist">
+                <apex:column headerValue="Date" >
+                    <apex:outputText value="{0,date,MM'/'dd'/'yyyy hh:mm a}">
+                        <apex:param value="{!hist.changeDate}" /> 
+                    </apex:outputText>
+                </apex:column>
+                
+                <apex:column headerValue="User">
+                    <a href="/{!hist.UserId}">{!hist.userName}</a>
+                </apex:column>
+                
+                <apex:column headerValue="Record" value="{!hist.recordName}"/>
+                
+                <apex:column headerValue="Action">
+                    <apex:outputText value="{!hist.ChangeHistory}" escape="false"/>
+                </apex:column>
+            </apex:pageBlockTable> -->
+        </apex:pageBlock>
+
+
+<script>
+    $("select.reqSelect").each(function() {
+        alert($(this));
+    });
+    
+</script>
+</apex:page>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomLabels xmlns="http://soap.sforce.com/2006/04/metadata">
+    <labels>
+        <fullName>PDS_API_Queue_ID</fullName>
+        <categories>Case Auto Close</categories>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>PDS API Queue ID</shortDescription>
+        <value>00G80000002tKsOEAU</value>
+    </labels>
+    <labels>
+        <fullName>RS2_Integration_User_Name</fullName>
+        <categories>RS2 Integration</categories>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>RS2_Integration_User_Name</shortDescription>
+        <value>RS2 QTG Integration User</value>
+    </labels>
+</CustomLabels>
